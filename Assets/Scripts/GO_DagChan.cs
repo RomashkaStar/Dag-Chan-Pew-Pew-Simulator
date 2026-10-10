@@ -10,13 +10,22 @@ public class GO_DagChan : MonoBehaviour
     [SerializeField] private float _Gravity = -9.8f;
 
     [Header("Обзор мышью")]
-    [SerializeField] private float _MouseSensitivity = 1500f;
+    [SerializeField] private float _MouseSensitivity = 500f;
     [SerializeField] private Transform _Camera;
+
+    private float horizontal;
+    private float vertical;
 
     private CharacterController _CharacterController;
 
     private float _VerticalVelocity;
     private float _CameraRotationX;
+    private Vector3 movement;
+
+    private bool isGrounded;
+
+    private float mouseX;
+    private float mouseY;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -36,16 +45,16 @@ public class GO_DagChan : MonoBehaviour
 
     private void Move()
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
+        horizontal = Input.GetAxisRaw("Horizontal");
+        vertical = Input.GetAxisRaw("Vertical");
 
-        Vector3 movement =
+        movement =
             transform.right * horizontal +
             transform.forward * vertical;
 
         movement = movement.normalized;
 
-        bool isGrounded = _CharacterController.isGrounded;
+        isGrounded = _CharacterController.isGrounded;
 
         if (isGrounded && _VerticalVelocity < 0)
         {
@@ -71,10 +80,10 @@ public class GO_DagChan : MonoBehaviour
 
     private void Look()
     {
-        float mouseX =
+        mouseX =
             Input.GetAxis("Mouse X") * _MouseSensitivity * Time.deltaTime;
 
-        float mouseY =
+        mouseY =
             Input.GetAxis("Mouse Y") * _MouseSensitivity * Time.deltaTime;
 
         // Влево-вправо крутим всего персонажа.
