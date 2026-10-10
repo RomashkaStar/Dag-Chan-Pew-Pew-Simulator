@@ -68,12 +68,16 @@ public class CameraEffects : MonoBehaviour
     //Желаемый наклон камеры при передвижении
     private float targetRoll = 0f;
 
+    //Скорость возвращения камеры к стандартному положению при ходьбе
     private float smoothing;
 
+    //Скорость падения
     private float fallSpeed;
 
+    //Сила толчка камеры при приземлении, зависящая от скорости падения
     private float impact;
 
+    //Скорость возвращения камеры при приземлении
     private float returnAmount;
 
     private void Start()
@@ -205,23 +209,14 @@ public class CameraEffects : MonoBehaviour
     //Изменяем положение камеры, применяя расчитанные ранее эффекты
     private void ApplyEffects()
     {
-        // Позиция камеры.
-        transform.localPosition =
-            _StartPosition +
-            _CurrentBob +
-            Vector3.up * _KickY;
+        //Позиция камеры.
+        transform.localPosition = _StartPosition + _CurrentBob + Vector3.up * _KickY;
 
-        //Базовый поворот уже поставил твой Look()
+        //Базовый поворот уже поставил Look()
         Quaternion normalRotation = transform.localRotation;
 
-        Quaternion effectRotation =
-            Quaternion.Euler(
-                _KickPitch,
-                0f,
-                _CurrentRoll
-            );
+        Quaternion effectRotation = Quaternion.Euler(_KickPitch, 0f, _CurrentRoll);
 
-        transform.localRotation =
-            normalRotation * effectRotation;
+        transform.localRotation = normalRotation * effectRotation;
     }
 }
