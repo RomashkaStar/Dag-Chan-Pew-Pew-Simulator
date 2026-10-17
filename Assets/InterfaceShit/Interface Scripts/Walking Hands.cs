@@ -68,6 +68,24 @@ public class WeaponUIBob : MonoBehaviour
     // Максимальная скорость падения.
     private float _LowestAirVelocity;
 
+    private bool isGrounded;
+
+    private Vector3 velocity;
+
+    private float horizontalSpeed;
+
+    private Vector2 targetBob;
+
+    private float targetRotation;
+
+    private float smoothing;
+
+    private float fallSpeed;
+
+    private float impact;
+
+    private float returnAmount;
+
 
     private void Start()
     {
@@ -97,15 +115,15 @@ public class WeaponUIBob : MonoBehaviour
 
     private void LateUpdate()
     {
-        bool isGrounded =
+        isGrounded =
             _CharacterController.isGrounded;
 
-        Vector3 velocity =
+        velocity =
             _CharacterController.velocity;
 
 
         // Вычисляем скорость только по земле.
-        float horizontalSpeed =
+        horizontalSpeed =
             new Vector3(
                 velocity.x,
                 0f,
@@ -136,10 +154,10 @@ public class WeaponUIBob : MonoBehaviour
         float speed
     )
     {
-        Vector2 targetBob =
+        targetBob =
             Vector2.zero;
 
-        float targetRotation = 0f;
+        targetRotation = 0f;
 
 
         if (isGrounded && speed > 0.1f)
@@ -172,7 +190,7 @@ public class WeaponUIBob : MonoBehaviour
         }
 
 
-        float smoothing =
+        smoothing =
             1f - Mathf.Exp(
                 -_BobSmoothness * Time.deltaTime
             );
@@ -230,13 +248,13 @@ public class WeaponUIBob : MonoBehaviour
         // Значит приземлились.
         if (isGrounded && !_WasGrounded)
         {
-            float fallSpeed =
+            fallSpeed =
                 -_LowestAirVelocity;
 
 
             // От 0 до 1 в зависимости
             // от силы падения.
-            float impact =
+            impact =
                 Mathf.InverseLerp(
                     2f,
                     12f,

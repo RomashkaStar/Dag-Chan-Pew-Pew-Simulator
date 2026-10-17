@@ -38,6 +38,10 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private TMP_Text _HealthText;
 
 
+    //Процент от общего HP для заполнения полоски HP
+    private float healthPercent;
+
+
     private void Start()
     {
         // При запуске сразу отображаем
@@ -92,14 +96,7 @@ public class PlayerHealth : MonoBehaviour
     private void UpdateHealthUI()
     {
         // Получаем процент здоровья от 0 до 1.
-        //
-        // Например:
-        //
-        // 100 / 100 = 1
-        // 75 / 100 = 0.75
-        // 50 / 100 = 0.5
-        // 25 / 100 = 0.25
-        float healthPercent =
+        healthPercent =
             _CurrentHealth / _MaxHealth;
 
 

@@ -38,6 +38,16 @@ public class UIJumpEffect : MonoBehaviour
     // Стояли ли мы на земле в прошлом кадре.
     private bool _WasGrounded;
 
+    private bool isGrounded;
+
+    private float verticalVelocity;
+
+    private float targetJumpOffset;
+
+    private float moveAmount;
+
+    private float returnAmount;
+
 
     private void Start()
     {
@@ -55,16 +65,16 @@ public class UIJumpEffect : MonoBehaviour
 
     private void LateUpdate()
     {
-        bool isGrounded =
+        isGrounded =
             _CharacterController.isGrounded;
 
-        float verticalVelocity =
+        verticalVelocity =
             _CharacterController.velocity.y;
 
 
         // По умолчанию объект хочет вернуться
         // в свою обычную позицию.
-        float targetJumpOffset = 0f;
+        targetJumpOffset = 0f;
 
 
         // Если персонаж находится в воздухе
@@ -78,7 +88,7 @@ public class UIJumpEffect : MonoBehaviour
 
         // Плавно двигаем текущее смещение
         // к нужному значению.
-        float moveAmount =
+        moveAmount =
             1f - Mathf.Exp(
                 -_MoveSmoothness * Time.deltaTime
             );
@@ -103,7 +113,7 @@ public class UIJumpEffect : MonoBehaviour
 
         // После приземления постепенно
         // возвращаем толчок обратно к нулю.
-        float returnAmount =
+        returnAmount =
             1f - Mathf.Exp(
                 -_KickReturnSpeed * Time.deltaTime
             );
