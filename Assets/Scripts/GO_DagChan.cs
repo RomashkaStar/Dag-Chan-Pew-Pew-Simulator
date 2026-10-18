@@ -4,12 +4,12 @@ using UnityEngine.Animations;
 public class GO_DagChan : MonoBehaviour
 {
 
-    [Header("Движение")]
+    [Header("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ")]
     [SerializeField] private float _MoveSpeed = 5f;
     [SerializeField] private float _JumpHeight = 1.5f;
     [SerializeField] private float _Gravity = -9.8f;
 
-    [Header("Обзор мышью")]
+    [Header("пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ")]
     [SerializeField] private float _MouseSensitivity = 500f;
     [SerializeField] private Transform _Camera;
 
@@ -86,13 +86,13 @@ public class GO_DagChan : MonoBehaviour
         mouseY =
             Input.GetAxis("Mouse Y") * _MouseSensitivity * Time.deltaTime;
 
-        // Влево-вправо крутим всего персонажа.
+        // пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
         transform.Rotate(Vector3.up * mouseX);
 
-        // Вверх-вниз крутим только камеру.
+        // пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
         _CameraRotationX -= mouseY;
 
-        // Чтобы нельзя было сломать шею на 360 градусов.
+        // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ 360 пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
         _CameraRotationX = Mathf.Clamp(
             _CameraRotationX,
             -90f,
