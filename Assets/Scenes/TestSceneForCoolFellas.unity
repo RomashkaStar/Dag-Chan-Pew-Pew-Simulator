@@ -294,10 +294,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19563ee20502fb34ba6dbdd1899ef946, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Shotgun
-  _IdleSprite: {fileID: 0}
-  _FireSprites: []
-  _FrameTime: 0.05
-  _FireSound: {fileID: 0}
+  _IdleSprite: {fileID: 21300000, guid: e381e8933345e444aa90c95ab69b8eb6, type: 3}
+  _FireSprites:
+  - {fileID: 21300000, guid: 3d42ee02055ef6e4a8cc160acdca10fa, type: 3}
+  - {fileID: 21300000, guid: 68d4452d4d4a2c54da28cbacdc04f0db, type: 3}
+  - {fileID: 21300000, guid: 2e34c0faa379ba3438087e17b4d504f2, type: 3}
+  - {fileID: 21300000, guid: ce71119d11cdccb4aba0b3a54640a38e, type: 3}
+  - {fileID: 21300000, guid: 03ca745351251644495496734408b30e, type: 3}
+  _FrameTime: 0.17
+  _FireSound: {fileID: 8300000, guid: a3c3736a583954f4dacb203399d2ee75, type: 3}
   _AmmoCount: 12
   _AmmoSprite: {fileID: 0}
   _MaxAmmo: 24
@@ -1386,7 +1391,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: b84d13db3bd77ce41a8966197ee43157, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
