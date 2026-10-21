@@ -1,207 +1,443 @@
+
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 using TMPro;
+using System.Collections;
 
-// Unity проследит, чтобы на объекте
-// вместе с этим скриптом был AudioSource.
 [RequireComponent(typeof(AudioSource))]
-
 public class WeaponShooter : MonoBehaviour
 {
-    [Header("UI")]
+    [Header("Weapon UI")]
 
-    // Image, в котором показываем спрайт оружия.
+    // Image, отображающий спрайт оружия.
     [SerializeField] private Image _WeaponImage;
 
-    // Картинка типа боеприпаса
+    // Объект, который будем опускать и поднимать.
+    // Это WeaponSwapContainer, НЕ HandContainer!
+    [SerializeField] private RectTransform _WeaponSwapRect;
+
+
+    [Header("Ammo UI")]
+
+    // Картинка типа патронов.
     [SerializeField] private Image _AmmoImage;
 
-    // Текст, показывающий количество патронов
+    // Текст количества патронов.
     [SerializeField] private TMP_Text _AmmoText;
 
 
     [Header("Weapons")]
 
-    // Пистолет по умолчанию.
+    // Пистолет.
     [SerializeField] private Pistol _Pistol;
 
-    // Дробовик
+    // Дробовик.
     [SerializeField] private Shotgun _Shotgun;
 
     // Выбранное оружие.
     private Weapon _SelectedWeapon;
 
 
-    [Header("Audio")]
+    [Header("Weapon Switching")]
 
-    // Компонент, который будет воспроизводить звук.
+    // Насколько далеко опускаем оружие вниз.
+    // Значение задаётся в единицах UI.
+    [SerializeField] private float _LowerDistance = 1200f;
+
+    // Сколько секунд занимает опускание.
+    [SerializeField] private float _LowerDuration = 0.25f;
+
+    // Сколько секунд занимает поднятие.
+    [SerializeField] private float _RaiseDuration = 0.3f;
+
+
+    // Начальная позиция контейнера смены оружия.
+    private Vector2 _SwapStartPosition;
+
+
+    // Источник звука.
     private AudioSource _AudioSource;
 
-
-    // Идёт ли сейчас анимация выстрела.
+    // Сейчас проигрывается выстрел?
     private bool _IsFiring;
+
+    // Сейчас происходит смена оружия?
+    private bool _IsSwitching;
 
 
     private void Awake()
     {
-        // Получаем AudioSource с нашего объекта.
         _AudioSource = GetComponent<AudioSource>();
     }
 
 
     private void Start()
     {
-        // Выбираем пистолет.
+        // Проверяем, что основные ссылки назначены.
+        if (_WeaponImage == null ||
+            _WeaponSwapRect == null ||
+            _Pistol == null)
+        {
+            Debug.LogError(
+                "WeaponShooter: не назначены Weapon Image, " +
+                "Weapon Swap Rect или Pistol!"
+            );
+
+            enabled = false;
+            return;
+        }
+
+        // Запоминаем обычное положение
+        // контейнера с оружием.
+        _SwapStartPosition =
+            _WeaponSwapRect.anchoredPosition;
+
+        // По умолчанию выбираем пистолет.
+        // На старте анимация переключения не нужна.
         _SelectedWeapon = _Pistol;
 
-        // Ставим его обычный спрайт.
-        if (_SelectedWeapon != null)
-        {
-            _WeaponImage.sprite = _SelectedWeapon.IdleSprite;
-        }
+        // Показываем обычный спрайт пистолета.
+        _WeaponImage.sprite = _SelectedWeapon.IdleSprite;
+
+        // Обновляем интерфейс патронов.
+        UpdateAmmoUI();
     }
 
 
     private void Update()
     {
-        // По нажатию ЛКМ пытаемся выстрелить.
+        // ЛКМ — стрельба.
         if (Input.GetMouseButtonDown(0))
         {
             Fire();
         }
 
-        // Выбрать пистолет.
+        // Клавиша 1 — пистолет.
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             SelectWeapon(_Pistol);
         }
 
-        // Выбрать дробовик.
+        // Клавиша 2 — дробовик.
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             SelectWeapon(_Shotgun);
         }
     }
 
-    // Метод выбора нового оружия
-    public void SelectWeapon(Weapon weapon) {
-        // Нельзя переключать оружие посреди выстрела.
-        // И нельзя выбирать соответствующее оружие.
-        if (_IsFiring || weapon == null) {
+
+    // ---------------------------
+    // ВЫБОР ОРУЖИЯ
+    // ---------------------------
+
+    public void SelectWeapon(Weapon newWeapon)
+    {
+        // Если оружия нет, ничего не делаем.
+        if (newWeapon == null)
+        {
             return;
         }
 
-        // Запоминаем новое выбранное оружие.
-        _SelectedWeapon = weapon;
+        // Если уже держим это оружие,
+        // нет смысла снова его доставать.
+        if (_SelectedWeapon == newWeapon)
+        {
+            return;
+        }
 
-        // Ставим обычный спрайт выбранного выбранного оружия.
-        _WeaponImage.sprite = _SelectedWeapon.IdleSprite;
+        // Нельзя менять оружие посреди выстрела
+        // или другой смены оружия.
+        if (_IsFiring || _IsSwitching)
+        {
+            return;
+        }
 
-        // Обновляем информацию о его патронах.
-        UpdateAmmoUI();
+        // Помечаем начало смены оружия.
+        _IsSwitching = true;
+
+        // Запускаем анимацию переключения.
+        StartCoroutine(
+            SwitchWeaponAnimation(newWeapon)
+        );
     }
 
 
-    public bool TryPickUpAmmo(int amount) {
-        // Проверяем, выбрано ли оружие и положительно ли кол-во получаемых патронов
-        if (_SelectedWeapon == null || amount <= 0) {
-            return false;
-        }
+    // ---------------------------
+    // АНИМАЦИЯ СМЕНЫ ОРУЖИЯ
+    // ---------------------------
 
-        //Если патроны уже на максимуме, то мы ничего не подбираем
-        if (_SelectedWeapon.AmmoCount >= _SelectedWeapon.MaxAmmo) {
-            return false;
-        }
+    private IEnumerator SwitchWeaponAnimation(Weapon newWeapon)
+    {
+        // Запоминаем старое оружие.
+        Weapon oldWeapon = _SelectedWeapon;
 
-        //Добавляем патроны выбранному оружию.
-        _SelectedWeapon.AddAmmo(amount);
 
-        //Обновляем текст с кол-вом патронов
+        // ЭТАП 1.
+        // Меняем обычный спрайт старого оружия
+        // на промежуточный.
+        //
+        // Например, героиня отпускает пистолет.
+        _WeaponImage.sprite =
+            oldWeapon.SwitchSprite != null
+                ? oldWeapon.SwitchSprite
+                : oldWeapon.IdleSprite;
+
+
+        // ЭТАП 2.
+        // Вычисляем позицию за нижней границей экрана.
+        Vector2 loweredPosition =
+            _SwapStartPosition
+            + Vector2.down * _LowerDistance;
+
+        // Плавно опускаем оружие.
+        yield return MoveWeapon(
+            loweredPosition,
+            _LowerDuration
+        );
+
+
+        // ЭТАП 3.
+        // Оружие находится внизу.
+        //
+        // Теперь действительно меняем
+        // выбранное оружие.
+        _SelectedWeapon = newWeapon;
+
+        // Запрашиваем промежуточный спрайт
+        // уже у НОВОГО оружия.
+        //
+        // Например, руки берут дробовик.
+        _WeaponImage.sprite =
+            newWeapon.SwitchSprite != null
+                ? newWeapon.SwitchSprite
+                : newWeapon.IdleSprite;
+
+        // Обновляем иконку патронов и их количество.
         UpdateAmmoUI();
 
-        //Возвращаем true, сообщая, что патроны подобраны
-        return true;
+
+        // ЭТАП 4.
+        // Плавно поднимаем новое оружие обратно.
+        yield return MoveWeapon(
+            _SwapStartPosition,
+            _RaiseDuration
+        );
+
+
+        // ЭТАП 5.
+        // Когда руки полностью поднялись,
+        // устанавливаем обычный спрайт нового оружия.
+        _WeaponImage.sprite = newWeapon.IdleSprite;
+
+
+        // Смена закончена.
+        // Теперь снова можно стрелять и переключаться.
+        _IsSwitching = false;
     }
 
+
+    // ---------------------------
+    // ПЛАВНОЕ ПЕРЕМЕЩЕНИЕ ОРУЖИЯ
+    // ---------------------------
+
+    private IEnumerator MoveWeapon(
+        Vector2 targetPosition,
+        float duration
+    )
+    {
+        // Запоминаем позицию,
+        // из которой начинается движение.
+        Vector2 startPosition =
+            _WeaponSwapRect.anchoredPosition;
+
+        // Если длительность нулевая,
+        // просто ставим объект в нужную точку.
+        if (duration <= 0f)
+        {
+            _WeaponSwapRect.anchoredPosition = targetPosition;
+            yield break;
+        }
+
+
+        // Сколько времени прошло с начала движения.
+        float elapsed = 0f;
+
+
+        // Пока не прошло всё заданное время.
+        while (elapsed < duration)
+        {
+            // Прибавляем время текущего кадра.
+            elapsed += Time.deltaTime;
+
+            // Превращаем прошедшее время
+            // в число от 0 до 1.
+            //
+            // 0 = начало движения
+            // 1 = конец движения
+            float t = Mathf.Clamp01(
+                elapsed / duration
+            );
+
+
+            // SmoothStep делает движение мягче:
+            // сначала разгон, затем замедление.
+            float smoothT = Mathf.SmoothStep(
+                0f,
+                1f,
+                t
+            );
+
+
+            // Плавно перемещаем UI-контейнер
+            // между начальной и конечной точкой.
+            _WeaponSwapRect.anchoredPosition =
+                Vector2.Lerp(
+                    startPosition,
+                    targetPosition,
+                    smoothT
+                );
+
+
+            // Ждём следующего кадра.
+            yield return null;
+        }
+
+
+        // Гарантированно выставляем
+        // точную конечную позицию.
+        _WeaponSwapRect.anchoredPosition =
+            targetPosition;
+    }
+
+
+    // ---------------------------
+    // СТРЕЛЬБА
+    // ---------------------------
 
     private void Fire()
     {
-        // Не стреляем, если предыдущий выстрел
-        // ещё не закончился.
-        if (_IsFiring || _SelectedWeapon == null)
+        // Если оружие стреляет или переключается,
+        // новый выстрел запрещён.
+        if (_IsFiring || _IsSwitching)
         {
             return;
         }
 
-        //Просим выбранное орудие потратит патрон
-        if (!_SelectedWeapon.TrySpendAmmo()) {
+        if (_SelectedWeapon == null)
+        {
             return;
         }
 
-        // Патрон потрачен. Обновляем его количество на экране
+        // Пытаемся потратить один патрон.
+        // Если патронов нет — не стреляем.
+        if (!_SelectedWeapon.TrySpendAmmo())
+        {
+            return;
+        }
+
+        // Обновляем количество патронов.
         UpdateAmmoUI();
 
-        //Блокируем новые выстрелы на время анимации
+        // Блокируем следующие выстрелы.
         _IsFiring = true;
 
-        // Запускаем анимацию выстрела.
-        StartCoroutine(FireAnimation());
+        // Запускаем анимацию.
+        StartCoroutine(
+            FireAnimation(_SelectedWeapon)
+        );
     }
 
 
-    private IEnumerator FireAnimation()
+    private IEnumerator FireAnimation(Weapon weapon)
     {
-        // Запоминаем оружие, из которого стреляем.
-        Weapon weapon = _SelectedWeapon;
+        // Получаем звук выбранного оружия.
+        if (weapon.FireSound != null)
+        {
+            _AudioSource.PlayOneShot(weapon.FireSound);
+        }
 
-        // Запрашиваем у оружия спрайты стрельбы.
+        // Получаем спрайты стрельбы.
         Sprite[] fireSprites = weapon.FireSprites;
 
-        // Запрашиваем у оружия звук выстрела.
-        AudioClip fireSound = weapon.FireSound;
-
-
-        // ВОСПРОИЗВОДИМ ЗВУК
-
-        // Если у выбранного оружия есть звук...
-        if (fireSound != null)
+        // Если кадры анимации существуют,
+        // проигрываем их по очереди.
+        if (fireSprites != null)
         {
-            // ...проигрываем его один раз.
-            _AudioSource.PlayOneShot(fireSound);
+            foreach (Sprite sprite in fireSprites)
+            {
+                if (sprite != null)
+                {
+                    _WeaponImage.sprite = sprite;
+                }
+
+                // Ждём время одного кадра.
+                yield return new WaitForSeconds(
+                    Mathf.Max(0.01f, weapon.FrameTime)
+                );
+            }
         }
 
-
-        // ПРОИГРЫВАЕМ АНИМАЦИЮ
-
-        foreach (Sprite sprite in fireSprites)
-        {
-            // Меняем изображение оружия.
-            _WeaponImage.sprite = sprite;
-
-            // Ждём указанное оружием время.
-            yield return new WaitForSeconds(weapon.FrameTime);
-        }
-
-
-        // Возвращаем оружие в обычное положение.
+        // Возвращаем обычный спрайт.
         _WeaponImage.sprite = weapon.IdleSprite;
 
-        // Разрешаем следующий выстрел.
+        // Разрешаем новые выстрелы.
         _IsFiring = false;
     }
 
-    // Обновление интерфейса боеприпасов
-    private void UpdateAmmoUI() {
-        
 
-        // Запрашиваем у оружия спрайт его боеприпасов
-        _AmmoImage.sprite = _SelectedWeapon.AmmoSprite;
+    // ---------------------------
+    // ИНТЕРФЕЙС ПАТРОНОВ
+    // ---------------------------
 
-        // Показываем Image, только если спрайт назначен
-        _AmmoImage.enabled = _SelectedWeapon.AmmoSprite != null;
+    private void UpdateAmmoUI()
+    {
+        if (_SelectedWeapon == null)
+        {
+            return;
+        }
 
-        // Запрашиваем количество оставшихся патронов
-        _AmmoText.text = _SelectedWeapon.AmmoCount.ToString();
+        // Обновляем изображение типа боеприпаса.
+        if (_AmmoImage != null)
+        {
+            _AmmoImage.sprite = _SelectedWeapon.AmmoSprite;
+            _AmmoImage.enabled =
+                _SelectedWeapon.AmmoSprite != null;
+        }
+
+        // Обновляем числовой счётчик.
+        if (_AmmoText != null)
+        {
+            _AmmoText.text = _SelectedWeapon.AmmoCount.ToString();
+        }
+    }
+
+
+    // ---------------------------
+    // ПОДБОР ПАТРОНОВ
+    // ---------------------------
+
+    // Оставляем совместимость с нашим AmmoPickup.
+    public bool TryPickUpAmmo(int amount)
+    {
+        if (_SelectedWeapon == null || amount <= 0)
+        {
+            return false;
+        }
+
+        // Если патронов уже максимум,
+        // подобрать их нельзя.
+        if (_SelectedWeapon.AmmoCount >=
+            _SelectedWeapon.MaxAmmo)
+        {
+            return false;
+        }
+
+        // Добавляем патроны выбранному оружию.
+        _SelectedWeapon.AddAmmo(amount);
+
+        // Обновляем интерфейс.
+        UpdateAmmoUI();
+
+        return true;
     }
 }

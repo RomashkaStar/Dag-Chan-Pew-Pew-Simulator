@@ -1,3 +1,4 @@
+
 using UnityEngine;
 
 public abstract class Weapon : MonoBehaviour
@@ -7,72 +8,76 @@ public abstract class Weapon : MonoBehaviour
     // Обычный спрайт оружия.
     [SerializeField] protected Sprite _IdleSprite;
 
-    // Спрайты анимации выстрела.
+    // Кадры анимации выстрела.
     [SerializeField] protected Sprite[] _FireSprites;
 
-    // Продолжительность одного кадра анимации.
+    // НОВОЕ!
+    // Промежуточный спрайт смены оружия.
+    // Например, руки героини, отпускающие пистолет.
+    [SerializeField] protected Sprite _SwitchSprite;
+
+    // Длительность одного кадра стрельбы.
     [SerializeField] protected float _FrameTime = 0.05f;
 
 
     [Header("Audio")]
 
-    // Звуковой файл выстрела.
     [SerializeField] protected AudioClip _FireSound;
 
-    [Header ("Ammo")]
 
-    // Сколько патронов сейчас у этого оружия
-    [SerializeField, Min(0)] private int _AmmoCount = 12;
+    [Header("Ammo")]
 
-    // Спрайт типа боеприпаса
-    [SerializeField] private Sprite _AmmoSprite;
+    // Текущее количество патронов.
+    [SerializeField, Min(0)] protected int _AmmoCount = 12;
+
+    // Иконка патронов для интерфейса.
+    [SerializeField] protected Sprite _AmmoSprite;
 
 
-    // Позволяем другим скриптам получать данные выбранного оружия.
+    // Свойства для получения данных оружия.
     public Sprite IdleSprite => _IdleSprite;
-
     public Sprite[] FireSprites => _FireSprites;
-
+    public Sprite SwitchSprite => _SwitchSprite;
     public float FrameTime => _FrameTime;
-
     public AudioClip FireSound => _FireSound;
 
     public int AmmoCount => _AmmoCount;
-
     public Sprite AmmoSprite => _AmmoSprite;
 
-    // Максимум патронов. 
-    // abstract значит, что Weapon сам не задает  максимум.
-    // Каждый конкретный тип оружия обязан предоставить его.
+    // Максимум патронов задаётся конкретным оружием.
     public abstract int MaxAmmo { get; }
 
 
-    protected virtual void Awake() {
-        // При запуске проверяем, что текущее кол-во патронов укладывается в рамки дозволенного
-        _AmmoCount = Mathf.Clamp(_AmmoCount, 0 , MaxAmmo);
+    protected virtual void Awake()
+    {
+        _AmmoCount = Mathf.Clamp(_AmmoCount, 0, MaxAmmo);
     }
 
 
-    // Пробуем потратить один патрон. Если патрон потрачен - можно стрелять.
-    // Если патрон не тратится, то стрелять нельзя, патронов нет.
-    public bool TrySpendAmmo() {
-        if (_AmmoCount <= 0) {
+    public bool TrySpendAmmo()
+    {
+        if (_AmmoCount <= 0)
+        {
             return false;
         }
 
-        // Тратим патрон
         _AmmoCount--;
 
-        // Сообщаем, что патрон потрачен, выстрел разрешен
         return true;
     }
 
 
-    public void AddAmmo(int amount) {
-        if (amount <= 0) {
+    public void AddAmmo(int amount)
+    {
+        if (amount <= 0)
+        {
             return;
         }
 
-        _AmmoCount = Mathf.Clamp(_AmmoCount + amount, 0, MaxAmmo);
+        _AmmoCount = Mathf.Clamp(
+            _AmmoCount + amount,
+            0,
+            MaxAmmo
+        );
     }
 }

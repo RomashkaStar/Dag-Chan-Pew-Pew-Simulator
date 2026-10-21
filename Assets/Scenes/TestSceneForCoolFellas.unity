@@ -301,6 +301,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 2e34c0faa379ba3438087e17b4d504f2, type: 3}
   - {fileID: 21300000, guid: ce71119d11cdccb4aba0b3a54640a38e, type: 3}
   - {fileID: 21300000, guid: 03ca745351251644495496734408b30e, type: 3}
+  _SwitchSprite: {fileID: 21300000, guid: 71af2cb989997804099ef3f9aaaab59a, type: 3}
   _FrameTime: 0.17
   _FireSound: {fileID: 8300000, guid: a3c3736a583954f4dacb203399d2ee75, type: 3}
   _AmmoCount: 12
@@ -323,6 +324,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: ea1e23f8a5da31b4eb610c6ee7df7809, type: 3}
   - {fileID: 21300000, guid: 6bc913fe65819434f92ec1a2245e2d95, type: 3}
   - {fileID: 21300000, guid: 6fc79e41ed0cae3478777bd8cae2a1ae, type: 3}
+  _SwitchSprite: {fileID: 21300000, guid: d82599258d0a9414883064195ea94daa, type: 3}
   _FrameTime: 0.05
   _FireSound: {fileID: 8300000, guid: ca7da9f6593caae409478c9c693741c1, type: 3}
   _AmmoCount: 12
@@ -667,6 +669,7 @@ GameObject:
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
+  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -816,6 +819,27 @@ MonoBehaviour:
   _LandingKickPitch: 2.5
   _BobSmoothness: 12
   _KickReturnSpeed: 8
+--- !u!114 &330585549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d168d89fb2a376b4f88a7386f0832d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Anaglyph3D
+  _toggleKey: 92
+  _startEnabled: 0
+  _eyeDistance: 0.065
+  _convergenceDistance: 4
+  _stereoHUD: 1
+  _hudCanvases:
+  - {fileID: 1669632535}
+  _hudDistance: 2.5
+  _compositeShader: {fileID: 4800000, guid: 7eef120682100334fafabff06a631889, type: 3}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1817,6 +1841,42 @@ MonoBehaviour:
   _RightStepSprite: {fileID: 21300000, guid: 35973a46c558ec84999b2aadd3599b54, type: 3}
   _FrameTime: 0.15
   _MovementThreshold: 0.05
+--- !u!1 &1231600454
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1231600455}
+  m_Layer: 5
+  m_Name: SwapContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1231600455
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1231600454}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1506512166}
+  m_Father: {fileID: 1641020037}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 30.367933}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1312456947
 GameObject:
   m_ObjectHideFlags: 0
@@ -2324,14 +2384,14 @@ RectTransform:
   m_GameObject: {fileID: 1506512165}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
+  m_LocalScale: {x: 0.59999996, y: 0.59999996, z: 0.59999996}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 1641020037}
+  m_Father: {fileID: 1231600455}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: -281.5}
+  m_AnchoredPosition: {x: 0, y: -280.36792}
   m_SizeDelta: {x: 1447, y: 1024}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1506512167
@@ -2566,13 +2626,13 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1641020036}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1231600455}
   - {fileID: 53816082}
-  - {fileID: 1506512166}
   m_Father: {fileID: 1669632532}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
@@ -2593,10 +2653,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponShooter
   _WeaponImage: {fileID: 1506512167}
+  _WeaponSwapRect: {fileID: 1231600455}
   _AmmoImage: {fileID: 1446829082}
   _AmmoText: {fileID: 208679228}
   _Pistol: {fileID: 53816084}
   _Shotgun: {fileID: 53816083}
+  _LowerDistance: 1200
+  _LowerDuration: 0.25
+  _RaiseDuration: 0.1
 --- !u!114 &1641020040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2748,8 +2812,8 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1405320268}
   - {fileID: 1641020037}
+  - {fileID: 1405320268}
   - {fileID: 514910005}
   - {fileID: 2131845149}
   - {fileID: 467322903}
