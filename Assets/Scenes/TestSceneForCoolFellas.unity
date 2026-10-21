@@ -1808,9 +1808,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RocketDog
   _FrontSprite: {fileID: 21300000, guid: 859176efb7e837a459deb7eeb252cb5b, type: 3}
-  _FrontStepSprite: {fileID: 21300000, guid: cd47f0d9357a9f645947282853f44833, type: 3}
-  _BackSprite: {fileID: 21300000, guid: ce0551d23dc35d244adadd6b180fdd1d, type: 3}
-  _BackStepSprite: {fileID: 21300000, guid: 412cdee53c6b9684082528bf6f0d520e, type: 3}
+  _FrontStepSprite: {fileID: 21300000, guid: f005e76f6bbd50f49a3ac66a91919871, type: 3}
+  _BackSprite: {fileID: 21300000, guid: 350775ad86a487442bd1d44bd7487e36, type: 3}
+  _BackStepSprite: {fileID: 21300000, guid: d6e53f45330f00d49b9577b165b1099b, type: 3}
   _LeftSprite: {fileID: 21300000, guid: 948f44e504c482d4387829feb4807003, type: 3}
   _LeftStepSprite: {fileID: 21300000, guid: 19cf9ec812dfd8d44908dc35a2cdc063, type: 3}
   _RightSprite: {fileID: 21300000, guid: 52891706da6ee7743b82be3d1678cb9d, type: 3}
