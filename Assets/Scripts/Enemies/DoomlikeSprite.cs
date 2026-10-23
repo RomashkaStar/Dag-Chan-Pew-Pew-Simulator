@@ -25,6 +25,9 @@ public class DoomEnemySprite : MonoBehaviour
     // Таймер анимации ходьбы.
     private float _WalkTimer;
 
+    // Был ли показан кадр шага в предыдущем обновлении?
+    private bool _PreviousStepFrame;
+
 
     private void Awake()
     {
@@ -87,6 +90,24 @@ public class DoomEnemySprite : MonoBehaviour
 
         bool isStepFrame =
             UpdateWalkingAnimation(isMoving);
+
+
+        // Если враг движется,
+        // сейчас показывается кадр шага,
+        // а в прошлом обновлении кадра шага не было...
+        if (isMoving && isStepFrame && !_PreviousStepFrame)
+        {
+            // Воспроизводим звук одного шага.
+            _Enemy.PlayWalkSound();
+        }
+
+        // Запоминаем текущий кадр.
+        //
+        // Если враг остановился, записываем false,
+        // чтобы после возобновления ходьбы
+        // шаги снова корректно воспроизводились.
+        _PreviousStepFrame = isMoving && isStepFrame;
+
 
         EnemyViewDirection direction =
             GetViewDirection();

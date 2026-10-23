@@ -1,4 +1,5 @@
 
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum EnemyViewDirection
@@ -112,6 +113,76 @@ public abstract class Enemy : MonoBehaviour, IDamageable
     public float DeathStartTime => _DeathStartTime;
 
 
+    [Header("Enemy Sounds")]
+
+    // Список звуков получения урона.
+    // Можно указать сколько угодно AudioClip.
+    [SerializeField]
+    private List<AudioClip> _HurtSounds =
+        new List<AudioClip>();
+
+    // Отдельный звук смерти противника.
+    [SerializeField] private AudioClip _DeathSound;
+
+
+    // Громкость звуков получения урона.
+    [SerializeField, Range(0f, 1f)]
+    private float _HurtVolume = 1f;
+
+    // Громкость звука смерти.
+    [SerializeField, Range(0f, 1f)]
+    private float _DeathVolume = 1f;
+
+
+    [Header("Walking Sounds")]
+
+    // Список звуков шагов.
+    // Можно назначить любое количество AudioClip.
+    [SerializeField]
+    private List<AudioClip> _WalkSounds =
+        new List<AudioClip>();
+
+    // Громкость шагов.
+    [SerializeField, Range(0f, 1f)]
+    private float _WalkVolume = 0.6f;
+
+    // Отдельный AudioSource для шагов.
+    // Назначим его через Inspector.
+    [SerializeField] private AudioSource _WalkAudioSource;
+
+
+    // Компонент, который воспроизводит звуки.
+    private AudioSource _AudioSource;
+
+
+    [Header("Idle Sounds")]
+
+    // Звуки, которые враг издаёт,
+    // пока он ещё не получал урон.
+    [SerializeField]
+    private List<AudioClip> _IdleSounds =
+        new List<AudioClip>();
+
+    // Громкость случайных звуков.
+    [SerializeField, Range(0f, 1f)]
+    private float _IdleVolume = 0.65f;
+
+    // Минимальное время между звуками.
+    [SerializeField, Min(0f)]
+    private float _MinIdleSoundInterval = 5f;
+
+    // Максимальное время между звуками.
+    [SerializeField, Min(0f)]
+    private float _MaxIdleSoundInterval = 12f;
+
+
+    // Получал ли этот противник урон хотя бы один раз?
+    private bool _HasBeenHit;
+
+    // Время, когда можно проиграть следующий звук.
+    private float _NextIdleSoundTime;
+
+
 
 
 
@@ -135,8 +206,18 @@ public abstract class Enemy : MonoBehaviour, IDamageable
 
     protected virtual void Awake()
     {
-        // При появлении врага выдаём ему полное здоровье.
+        // Изначально у врага полное здоровье.
         _CurrentHealth = Mathf.Max(1f, _MaxHealth);
+
+        // Получаем AudioSource для звуков
+        // гавканья, получения урона и смерти.
+        _AudioSource = GetComponent<AudioSource>();
+
+        // Пока враг никем не атакован.
+        _HasBeenHit = false;
+
+        // Назначаем время первого случайного звука.
+        _NextIdleSoundTime = Time.time + GetRandomIdleDelay();
     }
 
 
@@ -144,44 +225,120 @@ public abstract class Enemy : MonoBehaviour, IDamageable
     // ПОЛУЧЕНИЕ УРОНА
     // --------------------------
 
+
+
     public virtual void TakeDamage(float damage)
     {
-        // Мёртвого врага больше не повреждаем.
-        // Отрицательный и нулевой урон игнорируем.
+        // Мёртвому врагу и при нулевом уроне
+        // ничего не делаем.
         if (_IsDead || damage <= 0f)
         {
             return;
         }
 
-        // Отнимаем здоровье.
+
+        // НОВОЕ!
+        // Противник теперь знает, что в него попали.
+        //
+        // С этого момента случайные звуки
+        // больше никогда не будут проигрываться.
+        _HasBeenHit = true;
+
+
+        // НОВОЕ!
+        // Прерываем любой текущий звук
+        // на основном AudioSource.
+        //
+        // Это может быть гавканье или
+        // предыдущий звук получения урона.
+        if (_AudioSource != null)
+        {
+            _AudioSource.Stop();
+        }
+
+
+        // Вычитаем полученный урон.
         _CurrentHealth = Mathf.Max(
             0f,
             _CurrentHealth - damage
         );
 
-        // Запоминаем время, до которого враг
-        // должен показывать окровавленный спрайт.
-        //
-        // Например:
-        // Time.time = 10
-        // HurtDuration = 0.2
-        //
-        // HurtUntil = 10.2
-        //
-        // До времени 10.2 враг будет выглядеть раненым.
+
+        // Проверяем, умер ли противник.
+        if (_CurrentHealth <= 0f)
+        {
+            // Die() сам запустит звук смерти.
+            Die();
+            return;
+        }
+
+
+        // Если враг выжил, запускаем реакцию
+        // окровавленных спрайтов.
         _HurtUntil = Time.time + _HurtDuration;
+
+
+        // Проигрываем случайный звук получения урона.
+        PlayRandomHurtSound();
+
 
         Debug.Log(
             $"{name} получил {damage} урона. " +
             $"Осталось HP: {_CurrentHealth}"
         );
+    }
 
-        // Если здоровье закончилось — умираем.
-        if (_CurrentHealth <= 0f)
+
+
+
+
+    private void PlayRandomHurtSound()
+    {
+        // Если AudioSource отсутствует,
+        // воспроизводить звук нечем.
+        if (_AudioSource == null)
         {
-            Die();
+            return;
+        }
+
+        // Если список пустой,
+        // проигрывать тоже нечего.
+        if (_HurtSounds == null || _HurtSounds.Count == 0)
+        {
+            return;
+        }
+
+        // Выбираем случайный индекс массива.
+        //
+        // Например, если у нас 4 звука:
+        //
+        // Element 0
+        // Element 1
+        // Element 2
+        // Element 3
+        //
+        // Random.Range(0, 4) выберет
+        // случайное целое число 0, 1, 2 или 3.
+        int randomIndex = Random.Range(
+            0,
+            _HurtSounds.Count
+        );
+
+        // Получаем случайный AudioClip.
+        AudioClip selectedSound =
+            _HurtSounds[randomIndex];
+
+        // Если файл существует,
+        // воспроизводим его.
+        if (selectedSound != null)
+        {
+            _AudioSource.PlayOneShot(
+                selectedSound,
+                _HurtVolume
+            );
         }
     }
+
 
 
     // --------------------------
@@ -189,18 +346,27 @@ public abstract class Enemy : MonoBehaviour, IDamageable
     // --------------------------
 
 
+
     protected virtual void Die()
     {
-        // Противник теперь официально мёртв.
+        // Противник умер.
         _IsDead = true;
 
-        // Запоминаем время смерти.
-        // Оно понадобится для вычисления
-        // текущего кадра анимации.
+        // Запоминаем момент смерти.
         _DeathStartTime = Time.time;
 
+        // Останавливаем звук шагов, если он ещё играет.
+        if (_WalkAudioSource != null)
+        {
+            _WalkAudioSource.Stop();
+        }
 
-        // Останавливаем движение врага.
+        // НОВОЕ!
+        // Проигрываем звук смерти.
+        PlayDeathSound();
+
+
+        // Останавливаем патрулирование.
         EnemyPatrol patrol = GetComponent<EnemyPatrol>();
 
         if (patrol != null)
@@ -209,9 +375,8 @@ public abstract class Enemy : MonoBehaviour, IDamageable
         }
 
 
-        // Отключаем физические коллайдеры врага.
-        // Теперь по его трупу нельзя наносить
-        // новые попадания через Physics.Raycast.
+        // Отключаем коллайдеры,
+        // чтобы труп больше не получал урон.
         Collider[] colliders =
             GetComponentsInChildren<Collider>();
 
@@ -221,22 +386,15 @@ public abstract class Enemy : MonoBehaviour, IDamageable
         }
 
 
-        // Если труп должен остаться навсегда,
-        // ничего больше не делаем.
-        //
-        // DoomEnemySprite самостоятельно
-        // проиграет анимацию до последнего кадра.
+        // Если труп должен остаться,
+        // объект не уничтожаем.
         if (_LeaveCorpse)
         {
             return;
         }
 
 
-        // Если труп оставлять не нужно,
-        // вычисляем полную длительность анимации.
-        //
-        // Например:
-        // 6 кадров * 0.12 секунды = 0.72 секунды.
+        // Вычисляем продолжительность анимации смерти.
         int frameCount =
             _DeathSprites != null ? _DeathSprites.Length : 0;
 
@@ -244,14 +402,194 @@ public abstract class Enemy : MonoBehaviour, IDamageable
             frameCount * DeathFrameTime;
 
 
-        // Удаляем противника только после
-        // завершения всей анимации
-        // и дополнительного времени лежания трупа.
-        Destroy(
-            gameObject,
-            animationDuration + _CorpseLifetime
+        // Не удаляем объект до завершения анимации
+        // и воспроизведения звука смерти.
+        float soundDuration =
+            _DeathSound != null ? _DeathSound.length : 0f;
+
+        float destroyDelay = Mathf.Max(
+            animationDuration + _CorpseLifetime,
+            soundDuration
+        );
+
+        Destroy(gameObject, destroyDelay);
+    }
+
+
+
+
+    private void PlayDeathSound()
+    {
+        // Если AudioSource отсутствует,
+        // выходим из метода.
+        if (_AudioSource == null)
+        {
+            return;
+        }
+
+        // Останавливаем предыдущие звуки урона,
+        // чтобы они не накладывались на звук смерти.
+        _AudioSource.Stop();
+
+        // Если звук смерти назначен,
+        // воспроизводим его.
+        if (_DeathSound != null)
+        {
+            _AudioSource.PlayOneShot(
+                _DeathSound,
+                _DeathVolume
+            );
+        }
+    }
+
+
+
+    public void PlayWalkSound()
+    {
+        // Мёртвые противники ходить не умеют.
+        if (_IsDead)
+        {
+            return;
+        }
+
+        // Проверяем, назначен ли AudioSource.
+        if (_WalkAudioSource == null)
+        {
+            return;
+        }
+
+        // Если звуков нет, ничего не воспроизводим.
+        if (_WalkSounds == null || _WalkSounds.Count == 0)
+        {
+            return;
+        }
+
+        // Выбираем случайный звук из списка.
+        int randomIndex = Random.Range(
+            0,
+            _WalkSounds.Count
+        );
+
+        AudioClip selectedSound =
+            _WalkSounds[randomIndex];
+
+        // Проверяем, что AudioClip не пустой.
+        if (selectedSound == null)
+        {
+            return;
+        }
+
+        // Воспроизводим звук шага.
+        _WalkAudioSource.PlayOneShot(
+            selectedSound,
+            _WalkVolume
         );
     }
+
+
+
+    private float GetRandomIdleDelay()
+    {
+        // Защищаемся от отрицательных значений.
+        float minDelay = Mathf.Max(
+            0f,
+            _MinIdleSoundInterval
+        );
+
+        // Максимальный интервал не должен быть
+        // меньше минимального.
+        float maxDelay = Mathf.Max(
+            minDelay,
+            _MaxIdleSoundInterval
+        );
+
+        // Возвращаем случайное время ожидания.
+        return Random.Range(minDelay, maxDelay);
+    }
+
+
+    // Проверка необходимости проиграть случайный звук.
+    // Это новый Update() в классе Enemy.
+    protected virtual void Update()
+    {
+        UpdateIdleSounds();
+    }
+
+
+    private void UpdateIdleSounds()
+    {
+        // Мёртвые враги не гавкают.
+        if (_IsDead)
+        {
+            return;
+        }
+
+        // Если враг хотя бы раз получил урон,
+        // случайные звуки больше не воспроизводятся.
+        if (_HasBeenHit)
+        {
+            return;
+        }
+
+        // Проверяем наличие AudioSource и списка.
+        if (_AudioSource == null ||
+            _IdleSounds == null ||
+            _IdleSounds.Count == 0)
+        {
+            return;
+        }
+
+        // Если время следующего звука ещё
+        // не наступило, ничего не делаем.
+        if (Time.time < _NextIdleSoundTime)
+        {
+            return;
+        }
+
+        // ВАЖНО!
+        // Если источник уже что-то воспроизводит,
+        // не прерываем существующий звук.
+        if (_AudioSource.isPlaying)
+        {
+            return;
+        }
+
+        // Выбираем случайный индекс из списка.
+        int randomIndex = Random.Range(
+            0,
+            _IdleSounds.Count
+        );
+
+        // Получаем случайный звук.
+        AudioClip selectedSound =
+            _IdleSounds[randomIndex];
+
+        // Длительность воспроизведения.
+        float soundDuration = 0f;
+
+        if (selectedSound != null)
+        {
+            // Запускаем случайный звук.
+            _AudioSource.PlayOneShot(
+                selectedSound,
+                _IdleVolume
+            );
+
+            soundDuration = selectedSound.length;
+        }
+
+        // Назначаем время следующего звука.
+        //
+        // Учитываем продолжительность самого звука,
+        // чтобы пауза начиналась после его окончания.
+        _NextIdleSoundTime =
+            Time.time +
+            soundDuration +
+            GetRandomIdleDelay();
+    }
+
+
+
 
 
 
