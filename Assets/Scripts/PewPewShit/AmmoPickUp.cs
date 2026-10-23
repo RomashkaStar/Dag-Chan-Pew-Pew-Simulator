@@ -1,26 +1,64 @@
+
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
-public class AmmoPickUp : MonoBehaviour
+public class AmmoPickup : MonoBehaviour
 {
-    [Header("AmmoPickup")]
+    [Header("Ammo Pickup")]
+
+    // Количество патронов, которое даёт коробка.
     [SerializeField] private int _AmmoAmount = 10;
 
-    private void OnTriggerEnter(Collider other) {
-        CharacterController player = other.GetComponentInParent<CharacterController>();
 
-        //Если Character Controller не найден, то значит объекта коснулся не игрок.
-        if (player == null) {
+    [Header("Audio")]
+
+    // Звук успешного подбора.
+    [SerializeField] private AudioClip _PickupSound;
+
+    // Громкость звука.
+    [SerializeField, Range(0f, 1f)]
+    private float _PickupVolume = 1f;
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        // Ищем CharacterController игрока.
+        CharacterController player =
+            other.GetComponentInParent<CharacterController>();
+
+        if (player == null)
+        {
             return;
         }
 
-        //Ищем WeaponShooter на игроке
-        WeaponShooter shooter = player.GetComponentInChildren<WeaponShooter>(true);
-        if (shooter == null) {
+        // Ищем систему оружия игрока.
+        WeaponShooter shooter =
+            player.GetComponentInChildren<WeaponShooter>(true);
+
+        if (shooter == null)
+        {
             return;
         }
 
-        if (shooter.TryPickUpAmmo(_AmmoAmount)) {
+        // Пытаемся добавить патроны.
+        // Если патроны уже на максимуме,
+        // метод вернёт false.
+        if (shooter.TryPickUpAmmo(_AmmoAmount))
+        {
+            // Патроны успешно подобраны!
+
+            // Проверяем, есть ли звуковой файл.
+            if (_PickupSound != null)
+            {
+                // Воспроизводим звук в позиции коробки.
+                AudioSource.PlayClipAtPoint(
+                    _PickupSound,
+                    transform.position,
+                    _PickupVolume
+                );
+            }
+
+            // Уничтожаем коробку.
             Destroy(gameObject);
         }
     }
