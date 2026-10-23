@@ -176,11 +176,48 @@ public abstract class Enemy : MonoBehaviour, IDamageable
     private float _MaxIdleSoundInterval = 12f;
 
 
+    [Header("Fire Animation")]
+
+    // Спрайт противника во время выстрела.
+    [SerializeField] private Sprite _FireSprite;
+
+    // Сколько секунд показываем спрайт выстрела.
+    [SerializeField, Min(0.01f)]
+    private float _FireSpriteDuration = 0.2f;
+
+    // До какого момента показываем спрайт выстрела.
+    private float _FireUntil;
+
+
     // Получал ли этот противник урон хотя бы один раз?
     private bool _HasBeenHit;
+    public bool HasBeenHit => _HasBeenHit;
 
     // Время, когда можно проиграть следующий звук.
     private float _NextIdleSoundTime;
+
+
+    private bool _IsAlerted;
+
+    public void SetAlerted()
+    {
+        if (_IsAlerted)
+        {
+            return;
+        }
+
+        _IsAlerted = true;
+
+        // Если врага ещё не ранили,
+        // прекращаем обычное гавканье.
+        //
+        // Но не прерываем звук ранения,
+        // если он уже получил пулю.
+        if (!_HasBeenHit && _AudioSource != null)
+        {
+            _AudioSource.Stop();
+        }
+    }
 
 
 
@@ -338,6 +375,37 @@ public abstract class Enemy : MonoBehaviour, IDamageable
             );
         }
     }
+
+
+
+    public void PlayFireAnimation()
+    {
+        // Мёртвый враг стрелять не должен.
+        if (_IsDead)
+        {
+            return;
+        }
+
+        // Если спрайт не назначен,
+        // запускать нечего.
+        if (_FireSprite == null)
+        {
+            return;
+        }
+
+        // Запоминаем время окончания анимации.
+        //
+        // Например:
+        // Time.time = 10
+        // FireSpriteDuration = 0.2
+        //
+        // FireUntil = 10.2
+        //
+        // До 10.2 секунды показываем спрайт выстрела.
+        _FireUntil =
+            Time.time + _FireSpriteDuration;
+    }
+
 
 
 
@@ -516,17 +584,50 @@ public abstract class Enemy : MonoBehaviour, IDamageable
     }
 
 
-    private void UpdateIdleSounds()
+    public bool TryPlayAttackCue(AudioClip clip, float volume)
     {
-        // Мёртвые враги не гавкают.
+        // Если враг мёртв, атаковать нельзя.
         if (_IsDead)
         {
-            return;
+            return false;
         }
 
-        // Если враг хотя бы раз получил урон,
-        // случайные звуки больше не воспроизводятся.
-        if (_HasBeenHit)
+        // Если враг прямо сейчас получает урон,
+        // не разрешаем ему начинать гавканье.
+        if (Time.time < _HurtUntil)
+        {
+            return false;
+        }
+
+        // Если AudioSource уже воспроизводит звук,
+        // не прерываем его подготовкой атаки.
+        //
+        // Например, это может быть звук ранения.
+        if (_AudioSource != null && _AudioSource.isPlaying)
+        {
+            return false;
+        }
+
+        // Если AudioSource и звук существуют,
+        // воспроизводим предупреждение об атаке.
+        if (_AudioSource != null && clip != null)
+        {
+            _AudioSource.PlayOneShot(
+                clip,
+                Mathf.Clamp01(volume)
+            );
+        }
+
+        // Сообщаем EnemyRocketLauncher,
+        // что подготовку выстрела можно начинать.
+        return true;
+    }
+
+
+
+    private void UpdateIdleSounds()
+    {
+        if (_IsDead || _HasBeenHit || _IsAlerted)
         {
             return;
         }
@@ -602,6 +703,26 @@ public abstract class Enemy : MonoBehaviour, IDamageable
         bool isStep
     )
     {
+
+        // Проверяем, показываем ли сейчас спрайт выстрела.
+        //
+        // Условия:
+        // 1. Враг жив.
+        // 2. Спрайт выстрела назначен.
+        // 3. Время анимации ещё не закончилось.
+        // 4. Враг сейчас НЕ показывает получение урона.
+        //
+        // Последнее условие важно:
+        // спрайт ранения имеет приоритет над выстрелом.
+        if (!_IsDead &&
+            _FireSprite != null &&
+            Time.time < _FireUntil &&
+            Time.time >= _HurtUntil)
+        {
+            return _FireSprite;
+        }
+
+
         switch (direction)
         {
             case EnemyViewDirection.Front:
