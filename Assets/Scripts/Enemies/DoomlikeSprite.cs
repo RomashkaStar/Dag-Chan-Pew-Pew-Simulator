@@ -55,41 +55,132 @@ public class DoomEnemySprite : MonoBehaviour
     }
 
 
+
     private void LateUpdate()
     {
-        // Без камеры или врага работать не можем.
         if (_Enemy == null || _PlayerCamera == null)
         {
             return;
         }
 
-        // Поворачиваем плоскость спрайта к игроку.
+        // Спрайт по-прежнему поворачивается к игроку.
         FaceCamera();
 
-        // Определяем, двигается ли противник.
+
+        // НОВОЕ!
+        // Если противник умер,
+        // полностью переключаемся на анимацию смерти.
+        if (_Enemy.IsDead)
+        {
+            UpdateDeathAnimation();
+
+            // return не позволяет выполнять
+            // анимацию ходьбы мёртвого врага.
+            return;
+        }
+
+
+        // Если противник жив,
+        // вся предыдущая логика остаётся прежней.
+
         bool isMoving = CheckMovement();
 
-        // Обновляем таймер анимации.
-        bool isStepFrame = UpdateWalkingAnimation(isMoving);
+        bool isStepFrame =
+            UpdateWalkingAnimation(isMoving);
 
-        // Узнаём, с какой стороны игрок видит врага.
-        EnemyViewDirection direction = GetViewDirection();
+        EnemyViewDirection direction =
+            GetViewDirection();
 
-        // ЗАПРАШИВАЕМ СПРАЙТ У ВРАГА.
-        //
-        // Нам вообще не важно,
-        // роботакса это или демон.
         Sprite targetSprite =
             _Enemy.GetSprite(direction, isStepFrame);
 
-        // Если спрайт существует и отличается
-        // от нынешнего, меняем картинку.
         if (targetSprite != null &&
             _SpriteRenderer.sprite != targetSprite)
         {
             _SpriteRenderer.sprite = targetSprite;
         }
     }
+
+
+    private void UpdateDeathAnimation()
+    {
+        // Запрашиваем массив кадров смерти
+        // у конкретного противника.
+        Sprite[] deathSprites = _Enemy.DeathSprites;
+
+
+        // Если кадров смерти нет,
+        // оставляем окровавленную стоячую позу.
+        if (deathSprites == null || deathSprites.Length == 0)
+        {
+            Sprite fallbackSprite = _Enemy.GetSprite(
+                GetViewDirection(),
+                false
+            );
+
+            if (fallbackSprite != null)
+            {
+                _SpriteRenderer.sprite = fallbackSprite;
+            }
+
+            return;
+        }
+
+
+        // Вычисляем, сколько секунд прошло
+        // после смерти противника.
+        //
+        // Например:
+        // Time.time = 15.5
+        // DeathStartTime = 15.0
+        //
+        // elapsed = 0.5 секунды.
+        float elapsed =
+            Mathf.Max(0f, Time.time - _Enemy.DeathStartTime);
+
+
+        // Вычисляем номер нужного кадра.
+        //
+        // Например:
+        // elapsed = 0.5
+        // DeathFrameTime = 0.1
+        //
+        // 0.5 / 0.1 = 5
+        //
+        // Значит показываем кадр с индексом 5.
+        int frameIndex = Mathf.FloorToInt(
+            elapsed / _Enemy.DeathFrameTime
+        );
+
+
+        // Не позволяем индексу выйти за массив.
+        //
+        // Если у нас 6 кадров,
+        // допустимые индексы: 0, 1, 2, 3, 4, 5.
+        //
+        // Даже если прошло 100 секунд,
+        // будем продолжать показывать кадр 5.
+        frameIndex = Mathf.Clamp(
+            frameIndex,
+            0,
+            deathSprites.Length - 1
+        );
+
+
+        // Получаем нужный кадр смерти.
+        Sprite targetSprite =
+            deathSprites[frameIndex];
+
+
+        // Показываем его на противнике.
+        if (targetSprite != null &&
+            _SpriteRenderer.sprite != targetSprite)
+        {
+            _SpriteRenderer.sprite = targetSprite;
+        }
+    }
+
+
 
 
     private void FaceCamera()

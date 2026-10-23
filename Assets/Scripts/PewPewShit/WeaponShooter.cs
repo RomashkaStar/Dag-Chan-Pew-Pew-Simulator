@@ -38,6 +38,19 @@ public class WeaponShooter : MonoBehaviour
     private Weapon _SelectedWeapon;
 
 
+    [Header("Damage")]
+
+    // Камера, из центра которой стреляем.
+    [SerializeField] private Camera _PlayerCamera;
+
+    // Максимальное расстояние попадания.
+    [SerializeField] private float _HitDistance = 100f;
+
+    // Слои объектов, в которые может попасть пуля.
+    // По умолчанию включены все слои.
+    [SerializeField] private LayerMask _HitLayers = ~0;
+
+
     [Header("Weapon Switching")]
 
     // Насколько далеко опускаем оружие вниз.
@@ -68,6 +81,18 @@ public class WeaponShooter : MonoBehaviour
     private void Awake()
     {
         _AudioSource = GetComponent<AudioSource>();
+
+        // Пытаемся найти камеру среди родителей.
+        if (_PlayerCamera == null)
+        {
+            _PlayerCamera = GetComponentInParent<Camera>();
+        }
+
+        // Если не нашли — ищем главную камеру сцены.
+        if (_PlayerCamera == null)
+        {
+            _PlayerCamera = Camera.main;
+        }
     }
 
 
@@ -316,8 +341,8 @@ public class WeaponShooter : MonoBehaviour
 
     private void Fire()
     {
-        // Если оружие стреляет или переключается,
-        // новый выстрел запрещён.
+        // Не стреляем во время анимации выстрела
+        // или смены оружия.
         if (_IsFiring || _IsSwitching)
         {
             return;
@@ -328,24 +353,107 @@ public class WeaponShooter : MonoBehaviour
             return;
         }
 
-        // Пытаемся потратить один патрон.
-        // Если патронов нет — не стреляем.
+        // Нет патронов — нет выстрела.
         if (!_SelectedWeapon.TrySpendAmmo())
         {
             return;
         }
 
-        // Обновляем количество патронов.
+        // Обновляем HUD.
         UpdateAmmoUI();
 
-        // Блокируем следующие выстрелы.
+        // НОВОЕ!
+        // Сразу при выстреле проверяем попадание
+        // и наносим урон выбранным оружием.
+        DealDamage(_SelectedWeapon);
+
+        // Запускаем обычную анимацию стрельбы.
         _IsFiring = true;
 
-        // Запускаем анимацию.
         StartCoroutine(
             FireAnimation(_SelectedWeapon)
         );
     }
+
+
+
+    private void DealDamage(Weapon weapon)
+    {
+        if (_PlayerCamera == null || weapon == null)
+        {
+            Debug.LogWarning("Нет камеры или оружия!");
+            return;
+        }
+
+        // Создаём луч из центра камеры.
+        Ray ray = new Ray(
+            _PlayerCamera.transform.position,
+            _PlayerCamera.transform.forward
+        );
+
+        // Проверяем, столкнулся ли луч с Collider.
+        if (Physics.Raycast(
+            ray,
+            out RaycastHit hit,
+            _HitDistance,
+            _HitLayers,
+            QueryTriggerInteraction.Ignore
+        ))
+        {
+            // Показываем луч до точки попадания.
+            Debug.DrawLine(
+                ray.origin,
+                hit.point,
+                Color.red,
+                2f
+            );
+
+            // ВАЖНО!
+            // Показываем, во что именно попала пуля.
+            Debug.Log(
+                "Пуля попала в: " + hit.collider.name +
+                " | Корневой объект: " + hit.collider.transform.root.name
+            );
+
+            // Ищем IDamageable на объекте попадания
+            // или у его родителей.
+            IDamageable damageable =
+                hit.collider.GetComponentInParent<IDamageable>();
+
+            if (damageable != null)
+            {
+                damageable.TakeDamage(weapon.Damage);
+
+                Debug.Log(
+                    "УРОН НАНЕСЁН: " + weapon.Damage
+                );
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "ПОПАДАНИЕ БЕЗ УРОНА! Объект: "
+                    + hit.collider.name
+                    + " — у него не найден IDamageable."
+                );
+            }
+        }
+        else
+        {
+            // Показываем луч, который никуда не попал.
+            Debug.DrawRay(
+                ray.origin,
+                ray.direction * _HitDistance,
+                Color.yellow,
+                2f
+            );
+
+            Debug.LogWarning(
+                "ПРОМАХ! Луч не встретил ни одного Collider."
+            );
+        }
+    }
+
+
 
 
     private IEnumerator FireAnimation(Weapon weapon)

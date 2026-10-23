@@ -47,6 +47,10 @@ public abstract class Weapon : MonoBehaviour
     // Максимум патронов задаётся конкретным оружием.
     public abstract int MaxAmmo { get; }
 
+    // Каждое конкретное оружие обязано сообщать,
+    // сколько урона наносит один его выстрел.
+    public abstract float Damage { get; }
+
 
     protected virtual void Awake()
     {
