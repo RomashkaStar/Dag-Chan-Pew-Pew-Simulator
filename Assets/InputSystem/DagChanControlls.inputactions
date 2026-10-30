@@ -68,6 +68,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Restart",
+                    "type": "Button",
+                    "id": "e70cc473-de89-48d4-b118-6d2dc37fbc78",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -89,6 +98,17 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "525d8449-3550-48d5-8900-5956c83fe200",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/stick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
                     "action": "Look",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -117,6 +137,17 @@
                 },
                 {
                     "name": "",
+                    "id": "cfbca65a-03da-40dc-bfa8-d86e82308f53",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/button3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
+                    "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "868aab4a-c1fd-48ba-904d-66822e91d588",
                     "path": "<Mouse>/leftButton",
                     "interactions": "",
@@ -133,6 +164,17 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
+                    "action": "Attack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "91774251-6805-47f1-9e03-b05cc1eb9621",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/button4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
                     "action": "Attack",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -161,6 +203,17 @@
                 },
                 {
                     "name": "",
+                    "id": "808fa3c1-a73b-4886-8ff0-b2ea3278ad6e",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/button10",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
+                    "action": "Pistol",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "f1c6d3d1-7609-49cb-9fc1-a318a18f1b2a",
                     "path": "<Keyboard>/2",
                     "interactions": "",
@@ -183,6 +236,17 @@
                 },
                 {
                     "name": "",
+                    "id": "cfc0456d-7b21-46cb-b053-d60662e6c533",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/button9",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
+                    "action": "Shotgun",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "10c965ce-acde-4c31-bee9-b4590fe57cad",
                     "path": "<Keyboard>/backslash",
                     "interactions": "",
@@ -199,6 +263,17 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
+                    "action": "Toggle3D",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c0ca653e-3727-4102-a4fc-0eef9ab07851",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/button8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
                     "action": "Toggle3D",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -268,6 +343,94 @@
                     "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "2D Vector",
+                    "id": "64f1c0fd-b96e-419c-8d6a-4a999014c382",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "33e8838a-bf31-4a48-b4c9-da56c3e12f0c",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/stick/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "43753184-97b3-4743-a68b-40902267df9c",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/stick/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "43d802b4-cb7a-4b1f-995d-9f95a9c8d06c",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/trigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "55dea268-3aae-4740-82ca-4b984423a410",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/button2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "395a1c9f-daff-457b-be12-7d83382e79e7",
+                    "path": "<Keyboard>/backquote",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard and mouse",
+                    "action": "Restart",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "edd671fa-b61e-430f-8b15-ce3f8b707aba",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Restart",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ded3e7c0-e6d1-48ce-8da3-63ce09f57386",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/button6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
+                    "action": "Restart",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }
@@ -295,6 +458,17 @@
             "devices": [
                 {
                     "devicePath": "<Gamepad>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        },
+        {
+            "name": "WheelShit",
+            "bindingGroup": "WheelShit",
+            "devices": [
+                {
+                    "devicePath": "<HID::Logitech  Logitech MOMO Racing >",
                     "isOptional": false,
                     "isOR": false
                 }

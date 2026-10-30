@@ -38,6 +38,11 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private TMP_Text _HealthText;
 
 
+    [Header("DeathScreen")]
+    [SerializeField] private DeathScreenController _DeathScreenController;
+    private bool _IsDead;
+
+
     //Процент от общего HP для заполнения полоски HP
     private float healthPercent;
 
@@ -60,20 +65,66 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
-        // Отнимаем здоровье.
+        if (_IsDead)
+        {
+            return;
+        }
+
         _CurrentHealth -= damage;
+        _CurrentHealth = Mathf.Max(0f, _CurrentHealth);
 
-        // Не позволяем HP стать меньше 0
-        // или больше максимального значения.
-        _CurrentHealth = Mathf.Clamp(
-            _CurrentHealth,
-            0f,
-            _MaxHealth
-        );
-
-        // После изменения HP обновляем весь интерфейс.
         UpdateHealthUI();
+
+        if (_CurrentHealth <= 0f)
+        {
+            Die();
+        }
     }
+
+
+    private void Die()
+    {
+        if (_IsDead)
+        {
+            return;
+        }
+
+        _IsDead = true;
+
+        Debug.Log("ИГРОК УМЕР! HP = " + _CurrentHealth, this);
+
+        // Отключаем движение и управление камерой.
+        GO_DagChan movement = GetComponent<GO_DagChan>();
+
+        if (movement != null)
+        {
+            movement.enabled = false;
+        }
+
+        // Отключаем стрельбу.
+        WeaponShooter shooter =
+            GetComponentInChildren<WeaponShooter>(true);
+
+        if (shooter != null)
+        {
+            shooter.enabled = false;
+        }
+
+        // Проверяем, назначен ли экран смерти.
+        if (_DeathScreenController == null)
+        {
+            Debug.LogError(
+                "НЕ НАЗНАЧЕН DEATH SCREEN CONTROLLER В PLAYER HEALTH!",
+                this
+            );
+
+            return;
+        }
+
+        // Запускаем анимацию.
+        _DeathScreenController.PlayDeathSequence();
+    }
+
 
 
     public void Heal(float healAmount)

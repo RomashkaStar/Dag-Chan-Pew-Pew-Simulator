@@ -90,6 +90,15 @@ public class WeaponShooter : MonoBehaviour
     private bool _IsSwitching;
 
 
+    [Header("Fire Sound Pitch")]
+
+    [SerializeField, Range(0.5f, 1.5f)]
+    private float _MinFirePitch = 0.9f;
+
+    [SerializeField, Range(0.5f, 1.5f)]
+    private float _MaxFirePitch = 1.1f;
+
+
     private void Awake()
     {
         _AudioSource = GetComponent<AudioSource>();
@@ -547,8 +556,21 @@ public class WeaponShooter : MonoBehaviour
         // Получаем звук выбранного оружия.
         if (weapon.FireSound != null)
         {
+            // Каждый раз выбираем случайную высоту звука.
+            //
+            // 1.0 — оригинальный звук.
+            // Меньше 1.0 — ниже и медленнее.
+            // Больше 1.0 — выше и быстрее.
+            _AudioSource.pitch = Random.Range(
+                _MinFirePitch,
+                _MaxFirePitch
+            );
+
+            // Проигрываем звук выстрела
+            // с выбранным Pitch.
             _AudioSource.PlayOneShot(weapon.FireSound);
         }
+
 
         // Получаем спрайты стрельбы.
         Sprite[] fireSprites = weapon.FireSprites;

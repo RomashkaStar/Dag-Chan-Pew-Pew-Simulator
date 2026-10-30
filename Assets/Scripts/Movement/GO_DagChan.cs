@@ -237,51 +237,62 @@ public class GO_DagChan : MonoBehaviour
     // ------------------------------------
 
 
+
     private void Look()
     {
-        // Получаем Vector2 из нашего действия Look.
-        //
-        // Input System сама выбирает,
-        // от какого устройства поступает ввод.
+        // Получаем движение мыши, геймпада или руля.
         Vector2 lookInput =
             _LookAction.ReadValue<Vector2>();
 
 
-        // Проверяем, какое устройство сейчас
-        // управляет действием Look.
-        //
-        // Если это Gamepad, значит движение
-        // пришло от правого стика.
+        // Проверяем, пришёл ли ввод от руля.
+        // Logitech MOMO определяется как Joystick.
+        bool isWheel =
+            _LookAction.activeControl?.device is Joystick;
+
+
+        // Проверяем, пришёл ли ввод от геймпада.
         bool isGamepad =
             _LookAction.activeControl?.device is Gamepad;
 
 
-        // Для геймпада скорость измеряется
-        // в градусах за секунду.
-        //
-        // Для мыши — в градусах
-        // на единицу перемещения мыши.
-        float sensitivity = isGamepad
+        // Для руля и геймпада используем
+        // ОДНУ И ТУ ЖЕ чувствительность.
+        float sensitivity = (isGamepad || isWheel)
             ? _GamepadLookSpeed * Time.deltaTime
             : _MouseSensitivity;
 
 
         float mouseX = lookInput.x * sensitivity;
-        float mouseY = lookInput.y * sensitivity;
+
+        // Рулю запрещаем поворачивать камеру
+        // вверх и вниз.
+        float mouseY = isWheel
+            ? 0f
+            : lookInput.y * sensitivity;
 
 
-        // Поворачиваем всего персонажа по горизонтали.
+        // Поворачиваем персонажа по горизонтали.
         transform.Rotate(Vector3.up * mouseX);
 
 
-        // Поворачиваем камеру по вертикали.
-        _CameraRotationX -= mouseY;
+        if (isWheel)
+        {
+            // При управлении рулём
+            // камера всегда смотрит прямо.
+            _CameraRotationX = 0f;
+        }
+        else
+        {
+            // Мышь и геймпад могут смотреть вверх-вниз.
+            _CameraRotationX -= mouseY;
 
-        _CameraRotationX = Mathf.Clamp(
-            _CameraRotationX,
-            -90f,
-            90f
-        );
+            _CameraRotationX = Mathf.Clamp(
+                _CameraRotationX,
+                -90f,
+                90f
+            );
+        }
 
 
         _Camera.localRotation = Quaternion.Euler(
@@ -290,5 +301,6 @@ public class GO_DagChan : MonoBehaviour
             0f
         );
     }
+
 
 }
