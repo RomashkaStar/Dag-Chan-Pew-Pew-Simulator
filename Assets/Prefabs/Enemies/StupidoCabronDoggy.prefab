@@ -505,8 +505,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyRocketLauncher
   _RocketPrefab: {fileID: 1018134760214413414, guid: 14c1b1cb05c22b5468eba752f655141c, type: 3}
   _RocketSpawnPoint: {fileID: 7474124059750860215}
+  _LaunchDelay: 0.13
   _LaunchSound: {fileID: 8300000, guid: 33774a66c2e8c0f48bf439e3354f98cb, type: 3}
   _LaunchVolume: 1
+  _RocketReleaseSound: {fileID: 0}
   _MuzzleFlashPrefab: {fileID: 0}
 --- !u!114 &1420963497782330482
 MonoBehaviour:
@@ -531,9 +533,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 72
   _PlayerAimHeight: 1
-  _AttackDistance: 12
+  _AttackDistance: 15
   _ReactionTime: 0.6
-  _FireCooldown: 5
+  _FireCooldown: 1
   _TurnSpeed: 240
   _FireAngle: 12
   _ForgetTime: 3

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.InputSystem;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -47,6 +48,11 @@ public class PlayerHealth : MonoBehaviour
     private float healthPercent;
 
 
+    [Header("Fall Death")]
+
+    [SerializeField] private float _DeathHeight = -3f;
+
+
     private void Start()
     {
         // При запуске сразу отображаем
@@ -60,7 +66,31 @@ public class PlayerHealth : MonoBehaviour
     {
         TakeDamage(20f);
     }
-}
+
+        // Если игрок уже мёртв,
+        // повторно вызывать смерть не нужно.
+        if (_IsDead)
+        {
+            return;
+        }
+
+        // Проверяем, не упал ли игрок ниже
+        // заданной высоты по мировой оси Y.
+        if (transform.position.y < _DeathHeight)
+        {
+            // Обнуляем здоровье.
+            _CurrentHealth = 0f;
+
+            // Обновляем полоску HP,
+            // текст и изображение персонажа.
+            UpdateHealthUI();
+
+            // Запускаем существующую систему смерти.
+            Die();
+
+            return;
+        }
+    }
 
 
     public void TakeDamage(float damage)

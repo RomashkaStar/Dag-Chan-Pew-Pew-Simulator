@@ -181,6 +181,19 @@ public class EnemyCombatAI : MonoBehaviour
     }
 
 
+
+    public void SetPlayer(Transform player)
+    {
+        // Получаем ссылку на игрока от спавнера.
+        //
+        // Теперь EnemyCombatAI знает,
+        // кого обнаруживать, преследовать
+        // и в кого запускать ракеты.
+        _Player = player;
+    }
+
+
+
     private void EnterAlert()
     {
         Debug.Log(

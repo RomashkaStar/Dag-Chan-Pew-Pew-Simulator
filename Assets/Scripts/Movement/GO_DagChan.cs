@@ -8,7 +8,7 @@ public class GO_DagChan : MonoBehaviour
 {
     [Header("Движение")]
 
-    [SerializeField] private float _MoveSpeed = 5f;
+    [SerializeField] private float _MoveSpeed = 10f;
     [SerializeField] private float _JumpHeight = 1.5f;
     [SerializeField] private float _Gravity = -9.8f;
 
@@ -46,6 +46,10 @@ public class GO_DagChan : MonoBehaviour
 
     // Накопленный угол поворота камеры вверх-вниз.
     private float _CameraRotationX;
+
+    // Лестница, на которой сейчас находится игрок.
+    // null означает, что игрок не на лестнице.
+    private LadderZone _CurrentLadder;
 
 
     // ------------------------------------
@@ -144,61 +148,71 @@ public class GO_DagChan : MonoBehaviour
     // ДВИЖЕНИЕ
     // ------------------------------------
 
+
     private void Move()
     {
-        // НОВАЯ СИСТЕМА!
-        //
-        // Вместо двух Input.GetAxisRaw()
-        // получаем один Vector2.
-        //
-        // X = влево / вправо
-        // Y = назад / вперёд
+        // Получаем ввод с клавиатуры, геймпада
+        // или другого привязанного устройства.
         Vector2 moveInput =
             _MoveAction.ReadValue<Vector2>();
 
 
-        // Переводим 2D-ввод в 3D-направление.
-        //
-        // transform.right  — вправо от игрока.
-        // transform.forward — вперёд от игрока.
+        // Рассчитываем направление движения.
         Vector3 movement =
             transform.right * moveInput.x +
             transform.forward * moveInput.y;
 
-
-        // Не позволяем двигаться по диагонали
-        // быстрее обычного.
-        //
-        // ClampMagnitude ограничивает длину
-        // вектора единицей, но сохраняет
-        // аналоговое управление геймпада.
         movement = Vector3.ClampMagnitude(
             movement,
             1f
         );
 
+        movement *= _MoveSpeed;
 
-        // Проверяем, находится ли игрок на земле.
+
+        // ==================================
+        // ЕСЛИ ИГРОК НА ЛЕСТНИЦЕ
+        // ==================================
+
+        if (_CurrentLadder != null)
+        {
+            // Полностью убираем накопленную
+            // вертикальную скорость падения.
+            _VerticalVelocity = 0f;
+
+
+            // Автоматически двигаемся вверх.
+            //
+            // Игроку не нужно ничего нажимать!
+            movement.y = _CurrentLadder.ClimbSpeed;
+
+
+            // Передвигаем CharacterController.
+            _CharacterController.Move(
+                movement * Time.deltaTime
+            );
+
+            // Не выполняем обычную гравитацию
+            // и прыжок, пока находимся на лестнице.
+            return;
+        }
+
+
+        // ==================================
+        // ОБЫЧНОЕ ДВИЖЕНИЕ
+        // ==================================
+
         bool isGrounded =
             _CharacterController.isGrounded;
 
 
-        // Если стоим на земле и скорость вниз
-        // отрицательная, оставляем небольшое
-        // прижатие к поверхности.
         if (isGrounded && _VerticalVelocity < 0f)
         {
             _VerticalVelocity = -2f;
         }
 
 
-        // НОВАЯ СИСТЕМА!
-        //
-        // WasPressedThisFrame() — аналог
-        // старого Input.GetKeyDown().
-        //
-        // Проверяем, нажали ли Jump
-        // именно в текущем кадре.
+        // Прыжок.
         if (_JumpAction.WasPressedThisFrame() &&
             isGrounded)
         {
@@ -208,28 +222,54 @@ public class GO_DagChan : MonoBehaviour
         }
 
 
-        // Применяем гравитацию.
+        // Гравитация.
         _VerticalVelocity +=
             _Gravity * Time.deltaTime;
 
 
-        // Превращаем направление движения
-        // в горизонтальную скорость.
-        movement *= _MoveSpeed;
-
-
-        // Добавляем вертикальную скорость.
+        // Добавляем вертикальное движение.
         movement.y = _VerticalVelocity;
 
 
-        // CharacterController.Move ожидает
-        // ПЕРЕМЕЩЕНИЕ за кадр, а не скорость.
-        //
-        // Поэтому умножаем на deltaTime.
+        // Перемещаем игрока.
         _CharacterController.Move(
             movement * Time.deltaTime
         );
     }
+
+
+
+    public void EnterLadder(LadderZone ladder)
+    {
+        // Если игрок уже на этой лестнице,
+        // ничего повторно делать не нужно.
+        if (_CurrentLadder == ladder)
+        {
+            return;
+        }
+
+        _CurrentLadder = ladder;
+
+        // Отключаем накопленную скорость падения.
+        // Иначе гравитация мешала бы подъёму.
+        _VerticalVelocity = 0f;
+    }
+
+
+    public void ExitLadder(LadderZone ladder)
+    {
+        // Сбрасываем только ту лестницу,
+        // с которой действительно вышли.
+        if (_CurrentLadder == ladder)
+        {
+            _CurrentLadder = null;
+
+            // После выхода снова будет
+            // применяться обычная гравитация.
+            _VerticalVelocity = 0f;
+        }
+    }
+
 
 
     // ------------------------------------

@@ -355,4 +355,18 @@ public class EnemyPatrol : MonoBehaviour
 
         return true;
     }
+    public void SetPatrolPoints(List<Transform> patrolPoints)
+    {
+        // Получаем список точек от спавнера.
+        //
+        // Создаём новый список, чтобы у каждого
+        // врага был собственный List.
+        //
+        // При этом сами Transform остаются
+        // ссылками на объекты в сцене.
+        _PatrolPoints = patrolPoints != null
+            ? new List<Transform>(patrolPoints)
+            : new List<Transform>();
+    }
+
 }
