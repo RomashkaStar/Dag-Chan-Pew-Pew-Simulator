@@ -3,10 +3,22 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(AudioSource))]
 public class WeaponShooter : MonoBehaviour
 {
+    [Header("Input System")]
+
+    // Компонент PlayerInput с корневого Dag-Chan.
+    [SerializeField] private PlayerInput _PlayerInput;
+
+    // Действия из DagChanControls.
+    private InputAction _AttackAction;
+    private InputAction _PistolAction;
+    private InputAction _ShotgunAction;
+
+
     [Header("Weapon UI")]
 
     // Image, отображающий спрайт оружия.
@@ -98,6 +110,13 @@ public class WeaponShooter : MonoBehaviour
 
     private void Start()
     {
+        InitializeInput();
+
+        if (!enabled)
+        {
+            return;
+        }
+
         // Проверяем, что основные ссылки назначены.
         if (_WeaponImage == null ||
             _WeaponSwapRect == null ||
@@ -129,26 +148,93 @@ public class WeaponShooter : MonoBehaviour
     }
 
 
+
     private void Update()
     {
-        // ЛКМ — стрельба.
-        if (Input.GetMouseButtonDown(0))
+        // Если новые действия не инициализированы,
+        // обрабатывать ввод невозможно.
+        if (_AttackAction == null ||
+            _PistolAction == null ||
+            _ShotgunAction == null)
+        {
+            return;
+        }
+
+        // ЛКМ — выстрел.
+        //
+        // WasPressedThisFrame() срабатывает один раз
+        // в момент нажатия кнопки.
+        if (_AttackAction.WasPressedThisFrame())
         {
             Fire();
         }
 
-        // Клавиша 1 — пистолет.
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+        // Клавиша 1 — выбрать пистолет.
+        if (_PistolAction.WasPressedThisFrame())
         {
             SelectWeapon(_Pistol);
         }
 
-        // Клавиша 2 — дробовик.
-        if (Input.GetKeyDown(KeyCode.Alpha2))
+        // Клавиша 2 — выбрать дробовик.
+        if (_ShotgunAction.WasPressedThisFrame())
         {
             SelectWeapon(_Shotgun);
         }
     }
+
+
+
+
+    private void InitializeInput()
+    {
+        // WeaponShooter висит на HandContainer,
+        // а PlayerInput — на корневом Dag-Chan.
+        //
+        // Поэтому ищем компонент среди родителей.
+        if (_PlayerInput == null)
+        {
+            _PlayerInput = GetComponentInParent<PlayerInput>();
+        }
+
+        // Если не нашли, выводим ошибку.
+        if (_PlayerInput == null)
+        {
+            Debug.LogError(
+                "WeaponShooter: не найден PlayerInput!",
+                this
+            );
+
+            enabled = false;
+            return;
+        }
+
+        // Получаем именно действия PlayerInput,
+        // а не отдельный экземпляр InputActionAsset.
+        _AttackAction =
+            _PlayerInput.actions.FindAction("Player/Attack");
+
+        _PistolAction =
+            _PlayerInput.actions.FindAction("Player/Pistol");
+
+        _ShotgunAction =
+            _PlayerInput.actions.FindAction("Player/Shotgun");
+
+
+        // Если какое-то действие не найдено,
+        // проверяем названия в Input Actions Editor.
+        if (_AttackAction == null ||
+            _PistolAction == null ||
+            _ShotgunAction == null)
+        {
+            Debug.LogError(
+                "WeaponShooter: не найдены Attack, Pistol или Shotgun!",
+                this
+            );
+
+            enabled = false;
+        }
+    }
+
 
 
     // ---------------------------

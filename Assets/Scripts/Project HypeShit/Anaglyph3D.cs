@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Red/Cyan anaglyph. Four independent cameras: two for the world and two
@@ -15,7 +16,9 @@ using UnityEngine.UI;
 public class Anaglyph3D : MonoBehaviour
 {
     [Header("Управление")]
-    [SerializeField] private KeyCode _toggleKey = KeyCode.Backslash;
+    [SerializeField] private PlayerInput _PlayerInput;
+    private InputAction _Toggle3DAction;
+
     [SerializeField] private bool _startEnabled = false;
 
     [Header("Стереоскопия")]
@@ -70,6 +73,43 @@ public class Anaglyph3D : MonoBehaviour
 
     private void Start()
     {
+
+        // Ищем PlayerInput на Dag-Chan.
+        //
+        // Если скрипт анаглифа находится на Main Camera,
+        // GetComponentInParent найдёт PlayerInput
+        // на корневом объекте игрока.
+        if (_PlayerInput == null)
+        {
+            _PlayerInput = GetComponentInParent<PlayerInput>();
+        }
+
+        if (_PlayerInput == null)
+        {
+            Debug.LogError(
+                "Анаглиф: не найден PlayerInput!",
+                this
+            );
+
+            enabled = false;
+            return;
+        }
+
+        // Получаем действие переключения 3D.
+        _Toggle3DAction =
+            _PlayerInput.actions.FindAction("Player/Toggle3D");
+
+        if (_Toggle3DAction == null)
+        {
+            Debug.LogError(
+                "Анаглиф: не найдено действие Toggle3D!",
+                this
+            );
+
+            enabled = false;
+            return;
+        }
+
         _mainCamera = GetComponent<Camera>();
         if (_mainCamera.orthographic)
         {
@@ -183,7 +223,7 @@ public class Anaglyph3D : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(_toggleKey))
+        if (_Toggle3DAction.WasPressedThisFrame())
             SetStereo(!_enabled3D);
     }
 

@@ -213,7 +213,7 @@ MonoBehaviour:
   _MaxHealth: 20
   _CollisionLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 72
   _ExplosionPrefab: {fileID: 2952908812240013993, guid: 96ae9c2f487ec664d8e1ed34ab169e49, type: 3}
   _ExplosionSound: {fileID: 8300000, guid: 4dad6a6c27c0e5541947dd092f9db371, type: 3}
   _ExplosionVolume: 1

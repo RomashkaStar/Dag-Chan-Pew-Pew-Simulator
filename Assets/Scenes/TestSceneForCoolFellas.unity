@@ -497,6 +497,7 @@ GameObject:
   - component: {fileID: 239166390}
   - component: {fileID: 239166389}
   - component: {fileID: 239166391}
+  - component: {fileID: 239166392}
   m_Layer: 6
   m_Name: Dag-Chan
   m_TagString: Untagged
@@ -519,8 +520,9 @@ MonoBehaviour:
   _MoveSpeed: 5
   _JumpHeight: 1.5
   _Gravity: -9.8
-  _MouseSensitivity: 500
+  _MouseSensitivity: 0.1
   _Camera: {fileID: 330585546}
+  _GamepadLookSpeed: 100
 --- !u!4 &239166390
 Transform:
   m_ObjectHideFlags: 0
@@ -563,6 +565,36 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 1, y: 0, z: 0}
+--- !u!114 &239166392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 239166388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
+  m_Actions: {fileID: -944628639613478452, guid: 44760846cfc08d1458759c05ff576230, type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Player
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &289625533
 GameObject:
   m_ObjectHideFlags: 0
@@ -850,7 +882,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d168d89fb2a376b4f88a7386f0832d0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Anaglyph3D
-  _toggleKey: 92
+  _PlayerInput: {fileID: 0}
   _startEnabled: 0
   _eyeDistance: 0.065
   _convergenceDistance: 4
@@ -2541,6 +2573,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b60517af245e9ca4fba92cdfe2fa7898, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponShooter
+  _PlayerInput: {fileID: 0}
   _WeaponImage: {fileID: 1506512167}
   _WeaponSwapRect: {fileID: 1231600455}
   _AmmoImage: {fileID: 1446829082}
