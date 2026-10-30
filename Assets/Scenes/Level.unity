@@ -5397,7 +5397,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 522421196971042012, guid: 4df029862ecfe1b4aa6e62b47f744c2f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7408202184001293221}
   m_SourcePrefab: {fileID: 100100000, guid: 4df029862ecfe1b4aa6e62b47f744c2f, type: 3}
 --- !u!1001 &5206979244516670677
 PrefabInstance:
@@ -5517,6 +5520,64 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0e994a933f0be2f4d9017cede7000f73, type: 3}
+--- !u!114 &6437530180493704748 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6342127547036363200, guid: 4df029862ecfe1b4aa6e62b47f744c2f, type: 3}
+  m_PrefabInstance: {fileID: 4697427350776086917}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!1 &7408202184001293220 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 522421196971042012, guid: 4df029862ecfe1b4aa6e62b47f744c2f, type: 3}
+  m_PrefabInstance: {fileID: 4697427350776086917}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7408202184001293221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7408202184001293220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4196ea25558b41f468a2a026bf85afe0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealthUI
+  _PlayerHealth: {fileID: 0}
+  _HealthBar: {fileID: 7679310247659676971}
+  _CharacterImage: {fileID: 6437530180493704748}
+  _HealthySprite: {fileID: 21300000, guid: b024ecb991d3fd14e8ef014f3e92fdbc, type: 3}
+  _HurtSprite: {fileID: 21300000, guid: 94f102c4697e6a6419fe955f20074571, type: 3}
+  _BadlyHurtSprite: {fileID: 21300000, guid: 9a5f6e32d385523458535a4832ec57ea, type: 3}
+  _NearDeathSprite: {fileID: 21300000, guid: 9e45e155742039a47b44e8f093599d27, type: 3}
+  _HealthText: {fileID: 8572667613099312155}
+--- !u!114 &7679310247659676971 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9136781444161658020, guid: 4df029862ecfe1b4aa6e62b47f744c2f, type: 3}
+  m_PrefabInstance: {fileID: 4697427350776086917}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &8572667613099312155 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2092064813528090989, guid: 4df029862ecfe1b4aa6e62b47f744c2f, type: 3}
+  m_PrefabInstance: {fileID: 4697427350776086917}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
