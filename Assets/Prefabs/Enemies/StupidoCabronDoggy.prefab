@@ -535,7 +535,7 @@ MonoBehaviour:
   _PlayerAimHeight: 1
   _AttackDistance: 15
   _ReactionTime: 0.6
-  _FireCooldown: 1
+  _FireCooldown: 2
   _TurnSpeed: 240
   _FireAngle: 12
   _ForgetTime: 3

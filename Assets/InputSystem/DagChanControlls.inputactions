@@ -77,6 +77,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "MusicSwitch",
+                    "type": "Button",
+                    "id": "ab2d3847-fb5f-46b4-94a4-57d7de9d49fd",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -429,6 +438,39 @@
                     "processors": "",
                     "groups": ";WheelShit",
                     "action": "Restart",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8d6ae278-a16a-4408-9a60-2f60ddeda7e4",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard and mouse",
+                    "action": "MusicSwitch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c4306be4-6846-40ce-950a-c47a53c6cbd6",
+                    "path": "<Gamepad>/dpad/right",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "MusicSwitch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "df7d7164-5051-4063-903c-569e4726f0b4",
+                    "path": "<HID::Logitech  Logitech MOMO Racing >/button5",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";WheelShit",
+                    "action": "MusicSwitch",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
