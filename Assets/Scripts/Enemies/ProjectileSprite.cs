@@ -1,4 +1,4 @@
-
+п»ї
 using UnityEngine;
 
 [RequireComponent(typeof(SpriteRenderer))]
@@ -6,30 +6,30 @@ public class RocketDirectionalSprite : MonoBehaviour
 {
     [Header("References")]
 
-    // Корневой объект ракеты.
-    // Именно он вращается в направлении полёта.
+    // РљРѕСЂРЅРµРІРѕР№ РѕР±СЉРµРєС‚ СЂР°РєРµС‚С‹.
+    // РРјРµРЅРЅРѕ РѕРЅ РІСЂР°С‰Р°РµС‚СЃСЏ РІ РЅР°РїСЂР°РІР»РµРЅРёРё РїРѕР»С‘С‚Р°.
     [SerializeField] private Transform _RocketRoot;
 
-    // Камера игрока.
+    // РљР°РјРµСЂР° РёРіСЂРѕРєР°.
     [SerializeField] private Transform _PlayerCamera;
 
 
     [Header("Directional Sprites")]
 
-    // Вид ракеты спереди (со стороны носа).
+    // Р’РёРґ СЂР°РєРµС‚С‹ СЃРїРµСЂРµРґРё (СЃРѕ СЃС‚РѕСЂРѕРЅС‹ РЅРѕСЃР°).
     [SerializeField] private Sprite _FrontSprite;
 
-    // Вид сзади (со стороны двигателя).
+    // Р’РёРґ СЃР·Р°РґРё (СЃРѕ СЃС‚РѕСЂРѕРЅС‹ РґРІРёРіР°С‚РµР»СЏ).
     [SerializeField] private Sprite _BackSprite;
 
-    // Вид с левой стороны.
+    // Р’РёРґ СЃ Р»РµРІРѕР№ СЃС‚РѕСЂРѕРЅС‹.
     [SerializeField] private Sprite _LeftSprite;
 
-    // Вид с правой стороны.
+    // Р’РёРґ СЃ РїСЂР°РІРѕР№ СЃС‚РѕСЂРѕРЅС‹.
     [SerializeField] private Sprite _RightSprite;
 
 
-    // Компонент, который отображает изображение.
+    // РљРѕРјРїРѕРЅРµРЅС‚, РєРѕС‚РѕСЂС‹Р№ РѕС‚РѕР±СЂР°Р¶Р°РµС‚ РёР·РѕР±СЂР°Р¶РµРЅРёРµ.
     private SpriteRenderer _SpriteRenderer;
 
 
@@ -37,7 +37,7 @@ public class RocketDirectionalSprite : MonoBehaviour
     {
         _SpriteRenderer = GetComponent<SpriteRenderer>();
 
-        // Автоматически ищем корень ракеты.
+        // РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё РёС‰РµРј РєРѕСЂРµРЅСЊ СЂР°РєРµС‚С‹.
         if (_RocketRoot == null)
         {
             EnemyRocketProjectile rocket =
@@ -53,8 +53,8 @@ public class RocketDirectionalSprite : MonoBehaviour
 
     private void Start()
     {
-        // Если камера не назначена,
-        // автоматически находим главную камеру.
+        // Р•СЃР»Рё РєР°РјРµСЂР° РЅРµ РЅР°Р·РЅР°С‡РµРЅР°,
+        // Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РЅР°С…РѕРґРёРј РіР»Р°РІРЅСѓСЋ РєР°РјРµСЂСѓ.
         if (_PlayerCamera == null && Camera.main != null)
         {
             _PlayerCamera = Camera.main.transform;
@@ -64,14 +64,14 @@ public class RocketDirectionalSprite : MonoBehaviour
 
     private void LateUpdate()
     {
-        // Проверяем наличие необходимых объектов.
+        // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РёС‡РёРµ РЅРµРѕР±С…РѕРґРёРјС‹С… РѕР±СЉРµРєС‚РѕРІ.
         if (_RocketRoot == null)
         {
             return;
         }
 
-        // Повторяем поиск камеры, если она
-        // ещё не была найдена при запуске.
+        // РџРѕРІС‚РѕСЂСЏРµРј РїРѕРёСЃРє РєР°РјРµСЂС‹, РµСЃР»Рё РѕРЅР°
+        // РµС‰С‘ РЅРµ Р±С‹Р»Р° РЅР°Р№РґРµРЅР° РїСЂРё Р·Р°РїСѓСЃРєРµ.
         if (_PlayerCamera == null)
         {
             if (Camera.main == null)
@@ -83,25 +83,25 @@ public class RocketDirectionalSprite : MonoBehaviour
         }
 
 
-        // 1. Определяем нужный ракурс ракеты.
+        // 1. РћРїСЂРµРґРµР»СЏРµРј РЅСѓР¶РЅС‹Р№ СЂР°РєСѓСЂСЃ СЂР°РєРµС‚С‹.
         UpdateDirectionalSprite();
 
-        // 2. Поворачиваем изображение к камере.
+        // 2. РџРѕРІРѕСЂР°С‡РёРІР°РµРј РёР·РѕР±СЂР°Р¶РµРЅРёРµ Рє РєР°РјРµСЂРµ.
         FaceCamera();
     }
 
 
     // ----------------------------------------
-    // ВЫБОР СПРАЙТА ПО НАПРАВЛЕНИЮ
+    // Р’Р«Р‘РћР  РЎРџР РђР™РўРђ РџРћ РќРђРџР РђР’Р›Р•РќРР®
     // ----------------------------------------
 
     private void UpdateDirectionalSprite()
     {
-        // Направление от ракеты к камере игрока.
+        // РќР°РїСЂР°РІР»РµРЅРёРµ РѕС‚ СЂР°РєРµС‚С‹ Рє РєР°РјРµСЂРµ РёРіСЂРѕРєР°.
         Vector3 directionToCamera =
             _PlayerCamera.position - _RocketRoot.position;
 
-        // Не нормализуем нулевой вектор.
+        // РќРµ РЅРѕСЂРјР°Р»РёР·СѓРµРј РЅСѓР»РµРІРѕР№ РІРµРєС‚РѕСЂ.
         if (directionToCamera.sqrMagnitude < 0.0001f)
         {
             return;
@@ -110,16 +110,16 @@ public class RocketDirectionalSprite : MonoBehaviour
         directionToCamera.Normalize();
 
 
-        // Определяем, насколько камера находится
-        // спереди или сзади ракеты.
+        // РћРїСЂРµРґРµР»СЏРµРј, РЅР°СЃРєРѕР»СЊРєРѕ РєР°РјРµСЂР° РЅР°С…РѕРґРёС‚СЃСЏ
+        // СЃРїРµСЂРµРґРё РёР»Рё СЃР·Р°РґРё СЂР°РєРµС‚С‹.
         float forwardDot = Vector3.Dot(
             _RocketRoot.forward,
             directionToCamera
         );
 
 
-        // Определяем, насколько камера находится
-        // справа или слева ракеты.
+        // РћРїСЂРµРґРµР»СЏРµРј, РЅР°СЃРєРѕР»СЊРєРѕ РєР°РјРµСЂР° РЅР°С…РѕРґРёС‚СЃСЏ
+        // СЃРїСЂР°РІР° РёР»Рё СЃР»РµРІР° СЂР°РєРµС‚С‹.
         float rightDot = Vector3.Dot(
             _RocketRoot.right,
             directionToCamera
@@ -129,11 +129,11 @@ public class RocketDirectionalSprite : MonoBehaviour
         Sprite targetSprite;
 
 
-        // Сравниваем, с какой стороны
-        // камера расположена сильнее.
+        // РЎСЂР°РІРЅРёРІР°РµРј, СЃ РєР°РєРѕР№ СЃС‚РѕСЂРѕРЅС‹
+        // РєР°РјРµСЂР° СЂР°СЃРїРѕР»РѕР¶РµРЅР° СЃРёР»СЊРЅРµРµ.
         if (Mathf.Abs(forwardDot) >= Mathf.Abs(rightDot))
         {
-            // Камера преимущественно спереди или сзади.
+            // РљР°РјРµСЂР° РїСЂРµРёРјСѓС‰РµСЃС‚РІРµРЅРЅРѕ СЃРїРµСЂРµРґРё РёР»Рё СЃР·Р°РґРё.
             if (forwardDot >= 0f)
             {
                 targetSprite = _FrontSprite;
@@ -145,7 +145,7 @@ public class RocketDirectionalSprite : MonoBehaviour
         }
         else
         {
-            // Камера преимущественно сбоку.
+            // РљР°РјРµСЂР° РїСЂРµРёРјСѓС‰РµСЃС‚РІРµРЅРЅРѕ СЃР±РѕРєСѓ.
             if (rightDot >= 0f)
             {
                 targetSprite = _RightSprite;
@@ -157,7 +157,7 @@ public class RocketDirectionalSprite : MonoBehaviour
         }
 
 
-        // Изменяем спрайт только при необходимости.
+        // РР·РјРµРЅСЏРµРј СЃРїСЂР°Р№С‚ С‚РѕР»СЊРєРѕ РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё.
         if (targetSprite != null &&
             _SpriteRenderer.sprite != targetSprite)
         {
@@ -167,19 +167,19 @@ public class RocketDirectionalSprite : MonoBehaviour
 
 
     // ----------------------------------------
-    // BILLBOARD — ПОВОРОТ СПРАЙТА К КАМЕРЕ
+    // BILLBOARD вЂ” РџРћР’РћР РћРў РЎРџР РђР™РўРђ Рљ РљРђРњР•Р Р•
     // ----------------------------------------
 
     private void FaceCamera()
     {
-        // Разворачиваем плоскость спрайта
-        // параллельно плоскости камеры.
+        // Р Р°Р·РІРѕСЂР°С‡РёРІР°РµРј РїР»РѕСЃРєРѕСЃС‚СЊ СЃРїСЂР°Р№С‚Р°
+        // РїР°СЂР°Р»Р»РµР»СЊРЅРѕ РїР»РѕСЃРєРѕСЃС‚Рё РєР°РјРµСЂС‹.
         //
-        // ВАЖНО:
-        // Вращаем только RocketVisual,
-        // а не всю ракету.
+        // Р’РђР–РќРћ:
+        // Р’СЂР°С‰Р°РµРј С‚РѕР»СЊРєРѕ RocketVisual,
+        // Р° РЅРµ РІСЃСЋ СЂР°РєРµС‚Сѓ.
         //
-        // Иначе мы сломаем направление полёта.
+        // РРЅР°С‡Рµ РјС‹ СЃР»РѕРјР°РµРј РЅР°РїСЂР°РІР»РµРЅРёРµ РїРѕР»С‘С‚Р°.
         transform.rotation = _PlayerCamera.rotation;
     }
 }

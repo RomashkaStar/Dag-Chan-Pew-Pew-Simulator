@@ -1,7 +1,9 @@
-
+﻿
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// Скрипт требует компоненты CharacterController
+// и PlayerInput на том же GameObject.
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
 public class GO_DagChan : MonoBehaviour
@@ -15,40 +17,41 @@ public class GO_DagChan : MonoBehaviour
 
     [Header("Обзор мышью")]
 
-    // В НОВОЙ системе чувствительность другая!
-    // Начни с 0.1 и настрой под себя.
+    // Mouse Delta передаёт смещение за кадр,
+    // поэтому чувствительность здесь небольшая.
     [SerializeField] private float _MouseSensitivity = 0.1f;
     [SerializeField] private Transform _Camera;
 
 
     [Header("Обзор геймпадом")]
 
+    // Общая скорость поворота для геймпада и руля.
     [SerializeField] private float _GamepadLookSpeed = 100f;
 
 
-    // Компоненты игрока.
     private CharacterController _CharacterController;
     private PlayerInput _PlayerInput;
 
 
-    // Ссылки на действия из Input Actions.
-    //
-    // Они НЕ хранят конкретные кнопки.
-    // Например, Move знает, что ему нужно двигаться,
-    // но физические клавиши заданы в DagChanControls.
+    // Получаем действия из Input Actions.
+    // Конкретные кнопки назначаются в DagChanControls,
+    // а не прописываются непосредственно в этом скрипте.
     private InputAction _MoveAction;
     private InputAction _LookAction;
     private InputAction _JumpAction;
 
 
-    // Вертикальная скорость для гравитации и прыжка.
+    // CharacterController не рассчитывает гравитацию
+    // автоматически, поэтому вертикальную скорость
+    // прыжка и падения храним самостоятельно.
     private float _VerticalVelocity;
 
-    // Накопленный угол поворота камеры вверх-вниз.
+    // Угол наклона камеры по вертикали.
+    // Хранится отдельно от поворота самого игрока.
     private float _CameraRotationX;
 
-    // Лестница, на которой сейчас находится игрок.
-    // null означает, что игрок не на лестнице.
+    // Ссылка на текущую лестницу.
+    // Если null — используется обычное движение.
     private LadderZone _CurrentLadder;
 
 
@@ -58,16 +61,13 @@ public class GO_DagChan : MonoBehaviour
 
     private void Start()
     {
-        // Получаем CharacterController.
         _CharacterController =
             GetComponent<CharacterController>();
 
-        // Получаем новый компонент PlayerInput.
         _PlayerInput =
             GetComponent<PlayerInput>();
 
 
-        // Проверяем, назначен ли Input Actions Asset.
         if (_PlayerInput.actions == null)
         {
             Debug.LogError(
@@ -80,10 +80,9 @@ public class GO_DagChan : MonoBehaviour
         }
 
 
-        // Получаем действия ИМЕННО из PlayerInput.
-        //
-        // Строки должны совпадать с названиями
-        // действий внутри DagChanControls.
+        // Берём действия из PlayerInput игрока.
+        // Это позволяет использовать одни и те же
+        // действия для клавиатуры, геймпада и руля.
         _MoveAction =
             _PlayerInput.actions.FindAction("Move");
 
@@ -94,7 +93,6 @@ public class GO_DagChan : MonoBehaviour
             _PlayerInput.actions.FindAction("Jump");
 
 
-        // Проверяем, что всё найдено.
         if (_MoveAction == null ||
             _LookAction == null ||
             _JumpAction == null)
@@ -122,16 +120,18 @@ public class GO_DagChan : MonoBehaviour
         }
 
 
-        // Считываем первоначальный угол камеры.
-        // DeltaAngle переводит его в удобный
-        // диапазон от -180 до +180 градусов.
+        // Запоминаем первоначальный наклон камеры.
+        // DeltaAngle переводит угол из формата 0–360
+        // в диапазон -180...180.
+        //
+        // Это нужно, чтобы дальнейшие ограничения
+        // наклона камеры работали корректно.
         _CameraRotationX = Mathf.DeltaAngle(
             0f,
             _Camera.localEulerAngles.x
         );
 
 
-        // Захватываем курсор мыши.
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -148,20 +148,37 @@ public class GO_DagChan : MonoBehaviour
     // ДВИЖЕНИЕ
     // ------------------------------------
 
-
     private void Move()
     {
-        // Получаем ввод с клавиатуры, геймпада
-        // или другого привязанного устройства.
+        // Move возвращает Vector2:
+        // X — движение влево/вправо;
+        // Y — движение вперёд/назад.
+        //
+        // Неважно, пришли значения от WASD,
+        // стика геймпада или другого устройства.
         Vector2 moveInput =
             _MoveAction.ReadValue<Vector2>();
 
 
-        // Рассчитываем направление движения.
+        // Преобразуем двумерный ввод в направление
+        // движения в трёхмерном пространстве.
+        //
+        // transform.right — направление вправо
+        // относительно самого персонажа.
+        //
+        // transform.forward — направление вперёд
+        // относительно персонажа.
+        //
+        // Поэтому WASD всегда двигают игрока
+        // относительно того, куда он смотрит.
         Vector3 movement =
             transform.right * moveInput.x +
             transform.forward * moveInput.y;
 
+
+        // Ограничиваем длину вектора единицей.
+        // Иначе движение по диагонали
+        // могло бы быть быстрее обычного.
         movement = Vector3.ClampMagnitude(
             movement,
             1f
@@ -171,29 +188,31 @@ public class GO_DagChan : MonoBehaviour
 
 
         // ==================================
-        // ЕСЛИ ИГРОК НА ЛЕСТНИЦЕ
+        // ДВИЖЕНИЕ ПО ЛЕСТНИЦЕ
         // ==================================
 
         if (_CurrentLadder != null)
         {
-            // Полностью убираем накопленную
-            // вертикальную скорость падения.
+            // Пока игрок на лестнице, отключаем
+            // накопленную вертикальную скорость.
+            // Иначе после падения он мог бы
+            // продолжать двигаться вниз.
             _VerticalVelocity = 0f;
 
 
-            // Автоматически двигаемся вверх.
-            //
-            // Игроку не нужно ничего нажимать!
+            // LadderZone передаёт свою скорость.
+            // Подъём автоматический: игроку
+            // не нужно удерживать кнопку.
             movement.y = _CurrentLadder.ClimbSpeed;
 
 
-            // Передвигаем CharacterController.
             _CharacterController.Move(
                 movement * Time.deltaTime
             );
 
-            // Не выполняем обычную гравитацию
-            // и прыжок, пока находимся на лестнице.
+
+            // Выходим из Move(), чтобы не применять
+            // обычную гравитацию и прыжок.
             return;
         }
 
@@ -202,102 +221,156 @@ public class GO_DagChan : MonoBehaviour
         // ОБЫЧНОЕ ДВИЖЕНИЕ
         // ==================================
 
+        // CharacterController сообщает,
+        // соприкасается ли игрок с землёй.
         bool isGrounded =
             _CharacterController.isGrounded;
 
 
+        // Когда персонаж стоит на земле,
+        // удерживаем небольшую отрицательную
+        // вертикальную скорость.
+        //
+        // Это помогает сохранять контакт
+        // с поверхностью вместо накопления падения.
         if (isGrounded && _VerticalVelocity < 0f)
         {
             _VerticalVelocity = -2f;
         }
 
 
-        // Прыжок.
+        // ==================================
+        // ПРЫЖОК
+        // ==================================
+
         if (_JumpAction.WasPressedThisFrame() &&
             isGrounded)
         {
+            // Рассчитываем стартовую скорость прыжка
+            // по заданной высоте и силе гравитации.
+            //
+            // Формула взята из кинематики:
+            // v = sqrt(2 * g * h)
+            //
+            // Поскольку _Gravity отрицательная,
+            // умножаем её на -2.
+            //
+            // Например, JumpHeight = 1.5
+            // означает желаемую высоту прыжка
+            // примерно 1.5 единицы Unity.
             _VerticalVelocity = Mathf.Sqrt(
                 _JumpHeight * -2f * _Gravity
             );
         }
 
 
-        // Гравитация.
+        // ==================================
+        // ГРАВИТАЦИЯ
+        // ==================================
+
+        // Каждый кадр изменяем вертикальную скорость
+        // под действием ускорения свободного падения.
+        //
+        // Чем дольше падаем, тем больше становится
+        // отрицательная вертикальная скорость.
         _VerticalVelocity +=
             _Gravity * Time.deltaTime;
 
 
-        // Добавляем вертикальное движение.
+        // Соединяем горизонтальное движение
+        // с вертикальной скоростью прыжка/падения.
         movement.y = _VerticalVelocity;
 
 
-        // Перемещаем игрока.
+        // CharacterController.Move перемещает
+        // персонажа с учётом столкновений.
+        //
+        // Move принимает смещение, а не скорость,
+        // поэтому умножаем movement на deltaTime.
+        //
+        // CharacterController сам по себе
+        // не применяет гравитацию — мы уже
+        // рассчитали её выше.
         _CharacterController.Move(
             movement * Time.deltaTime
         );
     }
 
 
+    // ------------------------------------
+    // ЛЕСТНИЦЫ
+    // ------------------------------------
 
+    // Этот метод вызывает LadderZone,
+    // когда персонаж входит в её Trigger.
     public void EnterLadder(LadderZone ladder)
     {
-        // Если игрок уже на этой лестнице,
-        // ничего повторно делать не нужно.
         if (_CurrentLadder == ladder)
         {
             return;
         }
 
+        // Запоминаем лестницу.
+        // Теперь Move() переключится на
+        // специальную логику подъёма.
         _CurrentLadder = ladder;
 
-        // Отключаем накопленную скорость падения.
-        // Иначе гравитация мешала бы подъёму.
         _VerticalVelocity = 0f;
     }
 
 
+    // LadderZone вызывает этот метод,
+    // когда игрок покидает её Trigger.
     public void ExitLadder(LadderZone ladder)
     {
-        // Сбрасываем только ту лестницу,
-        // с которой действительно вышли.
+        // Проверяем, что вышли именно
+        // из текущей лестницы.
+        //
+        // Это полезно, если триггеры
+        // нескольких лестниц пересекаются.
         if (_CurrentLadder == ladder)
         {
             _CurrentLadder = null;
 
-            // После выхода снова будет
-            // применяться обычная гравитация.
+            // Теперь Move() снова будет
+            // использовать обычную гравитацию.
             _VerticalVelocity = 0f;
         }
     }
 
 
-
     // ------------------------------------
-    // ОБЗОР МЫШЬЮ
+    // ОБЗОР КАМЕРОЙ
     // ------------------------------------
-
-
 
     private void Look()
     {
-        // Получаем движение мыши, геймпада или руля.
         Vector2 lookInput =
             _LookAction.ReadValue<Vector2>();
 
 
-        // Проверяем, пришёл ли ввод от руля.
-        // Logitech MOMO определяется как Joystick.
+        // Определяем устройство, которое сейчас
+        // управляет действием Look.
+        //
+        // Наш Logitech MOMO Racing определяется
+        // системой как Joystick.
         bool isWheel =
             _LookAction.activeControl?.device is Joystick;
 
-
-        // Проверяем, пришёл ли ввод от геймпада.
         bool isGamepad =
             _LookAction.activeControl?.device is Gamepad;
 
 
-        // Для руля и геймпада используем
-        // ОДНУ И ТУ ЖЕ чувствительность.
+        // Мышь возвращает delta — смещение
+        // за конкретный кадр.
+        //
+        // Геймпад и руль возвращают положение
+        // органа управления (например, стика).
+        //
+        // Поэтому для геймпада и руля используем
+        // скорость поворота с учётом deltaTime,
+        // а для мыши — отдельную чувствительность
+        // без дополнительного deltaTime.
         float sensitivity = (isGamepad || isWheel)
             ? _GamepadLookSpeed * Time.deltaTime
             : _MouseSensitivity;
@@ -305,28 +378,52 @@ public class GO_DagChan : MonoBehaviour
 
         float mouseX = lookInput.x * sensitivity;
 
-        // Рулю запрещаем поворачивать камеру
-        // вверх и вниз.
+
+        // При управлении рулём используем
+        // только горизонтальный поворот.
         float mouseY = isWheel
             ? 0f
             : lookInput.y * sensitivity;
 
 
-        // Поворачиваем персонажа по горизонтали.
+        // ==================================
+        // ГОРИЗОНТАЛЬНЫЙ ПОВОРОТ
+        // ==================================
+
+        // Поворачиваем весь объект игрока
+        // вокруг его вертикальной оси Y.
+        //
+        // Поэтому направление движения
+        // тоже меняется вместе с поворотом.
         transform.Rotate(Vector3.up * mouseX);
 
 
+        // ==================================
+        // ВЕРТИКАЛЬНЫЙ ПОВОРОТ
+        // ==================================
+
         if (isWheel)
         {
-            // При управлении рулём
-            // камера всегда смотрит прямо.
+            // Для руля фиксируем наклон камеры
+            // в горизонтальном положении.
             _CameraRotationX = 0f;
         }
         else
         {
-            // Мышь и геймпад могут смотреть вверх-вниз.
+            // Для мыши и геймпада меняем
+            // вертикальный наклон камеры.
+            //
+            // Угол сохраняется между кадрами,
+            // потому что движение мыши передаёт
+            // не положение, а изменение положения.
             _CameraRotationX -= mouseY;
 
+
+            // Запрещаем поворачивать камеру
+            // дальше 90 градусов вверх и вниз.
+            //
+            // Без ограничения можно было бы
+            // перевернуть её через голову.
             _CameraRotationX = Mathf.Clamp(
                 _CameraRotationX,
                 -90f,
@@ -335,12 +432,19 @@ public class GO_DagChan : MonoBehaviour
         }
 
 
+        // Quaternion.Euler создаёт поворот
+        // по указанным углам.
+        //
+        // Здесь используем localRotation,
+        // потому что камера является дочерним
+        // объектом игрока.
+        //
+        // Игрок отвечает за горизонтальный поворот,
+        // а камера — за вертикальный.
         _Camera.localRotation = Quaternion.Euler(
             _CameraRotationX,
             0f,
             0f
         );
     }
-
-
 }

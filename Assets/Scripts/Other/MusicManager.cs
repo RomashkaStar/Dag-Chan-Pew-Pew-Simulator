@@ -1,109 +1,120 @@
-using UnityEngine.InputSystem;
+п»ї
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
+// РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё С‚СЂРµР±СѓРµС‚ AudioSource РЅР° РѕР±СЉРµРєС‚Рµ.
 [RequireComponent(typeof(AudioSource))]
 public class MusicManager : MonoBehaviour
 {
     [Header("Music Folder")]
 
-    // Папка с MP3 внутри StreamingAssets.
-    public string musicFolderName = "PlayersMusic";
+    // РџР°РїРєР° СЃ MP3 РІРЅСѓС‚СЂРё Assets/StreamingAssets.
+    public string musicFolderName = "PlayerMusic";
 
 
     [Header("Music Settings")]
 
-    // Громкость музыки.
     [Range(0f, 1f)]
     public float musicVolume = 0.2f;
 
 
     [Header("Input System")]
+
     [SerializeField] private PlayerInput _PlayerInput;
 
-    // Действие переключения музыки.
     private InputAction _MusicSwitchAction;
 
 
-    // Источник воспроизведения музыки.
     private AudioSource _AudioSource;
 
-    // Список треков, которые ещё не проигрывались.
+    // РЎРїРёСЃРѕРє РµС‰С‘ РЅРµ РїСЂРѕРёРіСЂР°РЅРЅС‹С… С‚СЂРµРєРѕРІ.
+    // Р’С‹Р±СЂР°РЅРЅС‹Р№ С‚СЂРµРє СѓРґР°Р»СЏРµС‚СЃСЏ РёР· СЃРїРёСЃРєР°,
+    // РїРѕСЌС‚РѕРјСѓ РјСѓР·С‹РєР° РЅРµ РїРѕРІС‚РѕСЂСЏРµС‚СЃСЏ РґРѕ РЅРѕРІРѕРіРѕ РєСЂСѓРіР°.
     private List<string> _RemainingTracks = new List<string>();
 
-    // Последняя проигранная композиция.
-    // Нужна, чтобы один и тот же трек
-    // не играл два раза подряд.
+    // РќСѓР¶РµРЅ, С‡С‚РѕР±С‹ РїРѕСЃР»РµРґРЅРёР№ С‚СЂРµРє РїСЂРµРґС‹РґСѓС‰РµРіРѕ
+    // РєСЂСѓРіР° РЅРµ РїРѕРІС‚РѕСЂРёР»СЃСЏ РІ РЅР°С‡Р°Р»Рµ СЃР»РµРґСѓСЋС‰РµРіРѕ.
     private string _LastTrack;
 
+
+    // ------------------------------------
+    // РРќРР¦РРђР›РР—РђР¦РРЇ
+    // ------------------------------------
 
     private void Awake()
     {
         _AudioSource = GetComponent<AudioSource>();
 
-        // Музыку запускает только наш скрипт.
+        // РњСѓР·С‹РєРѕР№ РїРѕР»РЅРѕСЃС‚СЊСЋ СѓРїСЂР°РІР»СЏРµС‚ РЅР°С€ СЃРєСЂРёРїС‚.
+        // AudioSource РЅРµ РґРѕР»Р¶РµРЅ Р·Р°РїСѓСЃРєР°С‚СЊ РёР»Рё
+        // Р·Р°С†РёРєР»РёРІР°С‚СЊ РєРѕРјРїРѕР·РёС†РёРё СЃР°РјРѕСЃС‚РѕСЏС‚РµР»СЊРЅРѕ.
         _AudioSource.playOnAwake = false;
-
-        // Зацикливать один трек не нужно.
         _AudioSource.loop = false;
 
-        // Музыка не зависит от положения игрока.
+        // 2D-Р·РІСѓРє: РіСЂРѕРјРєРѕСЃС‚СЊ РјСѓР·С‹РєРё РЅРµ Р·Р°РІРёСЃРёС‚
+        // РѕС‚ РїРѕР»РѕР¶РµРЅРёСЏ РёРіСЂРѕРєР° РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РѕР±СЉРµРєС‚Р°.
         _AudioSource.spatialBlend = 0f;
 
         _AudioSource.volume = musicVolume;
 
-        // Музыка должна останавливаться
-        // вместе с остальными звуками при смерти.
+        // РџСЂРё СЃРјРµСЂС‚Рё РёРіСЂРѕРєР° AudioListener.pause = true.
+        // РњСѓР·С‹РєР° РґРѕР»Р¶РЅР° РѕСЃС‚Р°РЅР°РІР»РёРІР°С‚СЊСЃСЏ РІРјРµСЃС‚Рµ
+        // СЃ РѕСЃС‚Р°Р»СЊРЅС‹РјРё РѕР±С‹С‡РЅС‹РјРё Р·РІСѓРєР°РјРё.
         _AudioSource.ignoreListenerPause = false;
     }
 
 
-
     private void Start()
     {
-        // MusicManager находится отдельно от игрока,
-        // поэтому ищем PlayerInput во всей сцене.
+        // MusicManager РЅР°С…РѕРґРёС‚СЃСЏ РѕС‚РґРµР»СЊРЅРѕ РѕС‚ РёРіСЂРѕРєР°.
+        // Р•СЃР»Рё PlayerInput РЅРµ РЅР°Р·РЅР°С‡РµРЅ РІ Inspector,
+        // РёС‰РµРј РµРіРѕ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РІ СЃС†РµРЅРµ.
         if (_PlayerInput == null)
         {
             _PlayerInput = FindFirstObjectByType<PlayerInput>();
         }
 
-        if (_PlayerInput != null)
+        if (_PlayerInput != null &&
+            _PlayerInput.actions != null)
         {
-            // Получаем MusicSwitch из нашего
-            // существующего DagChanControls.
+            // РџРѕР»СѓС‡Р°РµРј РґРµР№СЃС‚РІРёРµ MusicSwitch РёР·
+            // СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµР№ Action Map РёРіСЂРѕРєР°.
             _MusicSwitchAction =
-                _PlayerInput.actions.FindAction("Player/MusicSwitch");
+                _PlayerInput.actions.FindAction(
+                    "Player/MusicSwitch"
+                );
         }
 
         if (_MusicSwitchAction == null)
         {
             Debug.LogWarning(
-                "MusicManager: действие Player/MusicSwitch не найдено!",
+                "MusicManager: РЅРµ РЅР°Р№РґРµРЅ Player/MusicSwitch!",
                 this
             );
         }
 
-        // Запускаем случайное воспроизведение,
-        // как и раньше.
+        // Р—Р°РїСѓСЃРєР°РµРј РѕРґРЅСѓ РєРѕСЂСѓС‚РёРЅСѓ, РєРѕС‚РѕСЂР°СЏ Р±СѓРґРµС‚
+        // СѓРїСЂР°РІР»СЏС‚СЊ РІСЃРµРј РїР»РµР№Р»РёСЃС‚РѕРј РґРѕ РєРѕРЅС†Р° РёРіСЂС‹.
         StartCoroutine(PlayMusicLoop());
     }
 
 
+    // ------------------------------------
+    // РџР•Р Р•РљР›Р®Р§Р•РќРР• РњРЈР—Р«РљР
+    // ------------------------------------
+
     private void Update()
     {
-        // Если действие не найдено,
-        // обрабатывать нажатия нечего.
         if (_MusicSwitchAction == null)
         {
             return;
         }
 
-        // Проверяем нажатие MusicSwitch.
         if (_MusicSwitchAction.WasPressedThisFrame())
         {
             SkipMusic();
@@ -111,63 +122,60 @@ public class MusicManager : MonoBehaviour
     }
 
 
-    // Переключение на следующую случайную песню.
     private void SkipMusic()
     {
-        // Если сейчас нет музыки или игра
-        // находится на паузе из-за смерти,
-        // ничего не делаем.
-        if (_AudioSource == null ||
-            !_AudioSource.isPlaying ||
-            AudioListener.pause)
+        // Р’Рѕ РІСЂРµРјСЏ СЃРјРµСЂС‚Рё РЅРµ СЂР°Р·СЂРµС€Р°РµРј
+        // РїРµСЂРµРєР»СЋС‡Р°С‚СЊ РєРѕРјРїРѕР·РёС†РёРё.
+        if (AudioListener.pause)
         {
             return;
         }
 
-        // Останавливаем текущую песню.
-        _AudioSource.Stop();
+        if (_AudioSource == null ||
+            !_AudioSource.isPlaying)
+        {
+            return;
+        }
 
-        // Дополнительно запускать новую
-        // композицию здесь НЕ нужно!
-        //
-        // Наша корутина PlayMusicLoop()
-        // сама увидит, что музыка закончилась,
-        // и выберет следующую случайную.
+        // РњС‹ С‚РѕР»СЊРєРѕ РѕСЃС‚Р°РЅР°РІР»РёРІР°РµРј С‚РµРєСѓС‰РёР№ С‚СЂРµРє.
+        // PlayMusicLoop СЃР°Рј Р·Р°РјРµС‚РёС‚, С‡С‚Рѕ РјСѓР·С‹РєР°
+        // Р·Р°РєРѕРЅС‡РёР»Р°СЃСЊ, Рё РІС‹Р±РµСЂРµС‚ СЃР»РµРґСѓСЋС‰СѓСЋ.
+        _AudioSource.Stop();
     }
 
 
-
-
     // ------------------------------------
-    // ПОЛУЧЕНИЕ СПИСКА МУЗЫКИ
+    // РџРћРРЎРљ РњРЈР—Р«РљР
     // ------------------------------------
 
     private void RefreshTrackList()
     {
         _RemainingTracks.Clear();
 
+        // Р¤РѕСЂРјРёСЂСѓРµРј РїСѓС‚СЊ Рє РїР°РїРєРµ СЃ MP3.
+        // Application.streamingAssetsPath СЂР°Р±РѕС‚Р°РµС‚
+        // Рё РІ СЂРµРґР°РєС‚РѕСЂРµ, Рё РІ СЃРѕР±СЂР°РЅРЅРѕР№ РёРіСЂРµ.
         string folderPath = Path.Combine(
             Application.streamingAssetsPath,
             musicFolderName
         );
 
-        // Проверяем существование папки.
         if (!Directory.Exists(folderPath))
         {
             Debug.LogWarning(
-                "MusicManager: папка не найдена: " +
+                "MusicManager: РїР°РїРєР° РЅРµ РЅР°Р№РґРµРЅР°: " +
                 folderPath
             );
 
             return;
         }
 
-        // Получаем все файлы внутри папки.
         string[] files = Directory.GetFiles(folderPath);
 
+        // РЎРѕС…СЂР°РЅСЏРµРј РїСѓС‚Рё С‚РѕР»СЊРєРѕ Рє MP3.
+        // РЎР°РјРё Р°СѓРґРёРѕС„Р°Р№Р»С‹ РїРѕРєР° РЅРµ Р·Р°РіСЂСѓР¶Р°РµРј.
         foreach (string file in files)
         {
-            // Добавляем только MP3.
             if (Path.GetExtension(file).Equals(
                 ".mp3",
                 StringComparison.OrdinalIgnoreCase))
@@ -177,28 +185,30 @@ public class MusicManager : MonoBehaviour
         }
 
         Debug.Log(
-            "MusicManager: найдено треков: " +
+            "MusicManager: РЅР°Р№РґРµРЅРѕ С‚СЂРµРєРѕРІ: " +
             _RemainingTracks.Count
         );
     }
 
 
     // ------------------------------------
-    // БЕСКОНЕЧНОЕ ВОСПРОИЗВЕДЕНИЕ
+    // РЎР›РЈР§РђР™РќР«Р™ РџР›Р•Р™Р›РРЎРў
     // ------------------------------------
 
     private IEnumerator PlayMusicLoop()
     {
+        // Р‘РµСЃРєРѕРЅРµС‡РЅС‹Р№ С†РёРєР», РєРѕС‚РѕСЂС‹Р№ РЅРµ Р±Р»РѕРєРёСЂСѓРµС‚
+        // РёРіСЂСѓ Р±Р»Р°РіРѕРґР°СЂСЏ yield return РІРЅСѓС‚СЂРё.
         while (true)
         {
-            // Если все композиции проиграны,
-            // заново получаем полный список.
+            // Р•СЃР»Рё РЅРµСЃС‹РіСЂР°РЅРЅС‹Рµ С‚СЂРµРєРё Р·Р°РєРѕРЅС‡РёР»РёСЃСЊ,
+            // РЅР°С‡РёРЅР°РµРј РЅРѕРІС‹Р№ РєСЂСѓРі РїР»РµР№Р»РёСЃС‚Р°.
             if (_RemainingTracks.Count == 0)
             {
                 RefreshTrackList();
 
-                // Если музыки вообще нет,
-                // ждём и пробуем снова.
+                // Р•СЃР»Рё РјСѓР·С‹РєРё РЅРµС‚, РїРµСЂРёРѕРґРёС‡РµСЃРєРё
+                // РїСЂРѕРІРµСЂСЏРµРј, РЅРµ РїРѕСЏРІРёР»РёСЃСЊ Р»Рё С„Р°Р№Р»С‹.
                 if (_RemainingTracks.Count == 0)
                 {
                     yield return new WaitForSecondsRealtime(5f);
@@ -207,15 +217,14 @@ public class MusicManager : MonoBehaviour
             }
 
 
-            // Выбираем случайный трек.
+            // Р’С‹Р±РёСЂР°РµРј СЃР»СѓС‡Р°Р№РЅС‹Р№ РёРЅРґРµРєСЃ РёР· СЃРїРёСЃРєР°.
             int randomIndex = UnityEngine.Random.Range(
                 0,
                 _RemainingTracks.Count
             );
 
-
-            // Не допускаем повторения последнего
-            // трека на границе двух циклов.
+            // Р—Р°С‰РёС‚Р° РѕС‚ РїРѕРІС‚РѕСЂРµРЅРёСЏ РѕРґРЅРѕР№ РїРµСЃРЅРё
+            // РЅР° РіСЂР°РЅРёС†Рµ РґРІСѓС… РєСЂСѓРіРѕРІ РїР»РµР№Р»РёСЃС‚Р°.
             if (_RemainingTracks.Count > 1 &&
                 _RemainingTracks[randomIndex] == _LastTrack)
             {
@@ -226,67 +235,104 @@ public class MusicManager : MonoBehaviour
 
             string trackPath = _RemainingTracks[randomIndex];
 
-            // Удаляем выбранный трек из списка
-            // ещё не проигранных композиций.
+            // РЈР±РёСЂР°РµРј РІС‹Р±СЂР°РЅРЅС‹Р№ С‚СЂРµРє РёР· СЃРїРёСЃРєР°.
+            // РџРѕРєР° СЃРїРёСЃРѕРє РЅРµ РѕРїСѓСЃС‚РµРµС‚, РѕРЅ Р±РѕР»СЊС€Рµ
+            // РЅРµ СЃРјРѕР¶РµС‚ РІС‹РїР°СЃС‚СЊ СЃР»СѓС‡Р°Р№РЅРѕ.
             _RemainingTracks.RemoveAt(randomIndex);
 
             _LastTrack = trackPath;
 
 
-            // Превращаем путь в файловый URI.
-            // Работает и с пробелами, и с кириллицей.
-            string fileUri = new Uri(trackPath).AbsoluteUri;
+            // UnityWebRequest СЂР°Р±РѕС‚Р°РµС‚ СЃ URI.
+            // РўР°Рє РєРѕСЂСЂРµРєС‚РЅРѕ РѕР±СЂР°Р±Р°С‚С‹РІР°СЋС‚СЃСЏ РїСѓС‚Рё
+            // СЃ РїСЂРѕР±РµР»Р°РјРё Рё СЂСѓСЃСЃРєРёРјРё СЃРёРјРІРѕР»Р°РјРё.
+            string fileUri =
+                new Uri(trackPath).AbsoluteUri;
 
 
-            // Загружаем MP3.
+            // ====================================
+            // Р—РђР“Р РЈР—РљРђ MP3
+            // ====================================
+
+            // РЎРѕР·РґР°С‘Рј Р·Р°РїСЂРѕСЃ РґР»СЏ Р·Р°РіСЂСѓР·РєРё MP3.
+            // using Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РѕСЃРІРѕР±РѕРґРёС‚ СЂРµСЃСѓСЂСЃС‹
+            // Р·Р°РїСЂРѕСЃР° РїРѕСЃР»Рµ Р·Р°РІРµСЂС€РµРЅРёСЏ Р±Р»РѕРєР°.
             using (UnityWebRequest request =
                 UnityWebRequestMultimedia.GetAudioClip(
                     fileUri,
                     AudioType.MPEG))
             {
+                DownloadHandlerAudioClip downloadHandler =
+                    request.downloadHandler as DownloadHandlerAudioClip;
+
+                if (downloadHandler != null)
+                {
+                    // РџРѕС‚РѕРєРѕРІС‹Р№ AudioClip РїРѕР·РІРѕР»СЏРµС‚
+                    // РЅРµ С…СЂР°РЅРёС‚СЊ РІСЃСЋ СЂР°СЃРїР°РєРѕРІР°РЅРЅСѓСЋ
+                    // РєРѕРјРїРѕР·РёС†РёСЋ РІ РѕРїРµСЂР°С‚РёРІРЅРѕР№ РїР°РјСЏС‚Рё.
+                    downloadHandler.streamAudio = true;
+                }
+
+
+                // РђСЃРёРЅС…СЂРѕРЅРЅРѕ Р·Р°РіСЂСѓР¶Р°РµРј MP3.
+                // РљРѕСЂСѓС‚РёРЅР° Р¶РґС‘С‚ Р·Р°РІРµСЂС€РµРЅРёСЏ Р·Р°РїСЂРѕСЃР°,
+                // РЅРѕ РѕСЃС‚Р°Р»СЊРЅР°СЏ РёРіСЂР° РїСЂРѕРґРѕР»Р¶Р°РµС‚ СЂР°Р±РѕС‚Р°С‚СЊ.
                 yield return request.SendWebRequest();
 
 
-                // Если загрузка не удалась,
-                // пропускаем этот файл.
                 if (request.result !=
                     UnityWebRequest.Result.Success)
                 {
                     Debug.LogWarning(
-                        "MusicManager: ошибка загрузки " +
-                        trackPath + "\n" + request.error
+                        "MusicManager: РѕС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё " +
+                        trackPath +
+                        "\n" + request.error
+                    );
+
+                    yield return new WaitForSecondsRealtime(1f);
+                    continue;
+                }
+
+
+                // РџРѕР»СѓС‡Р°РµРј AudioClip РёР· РѕР±СЂР°Р±РѕС‚С‡РёРєР° Р·Р°РіСЂСѓР·РєРё.
+                // РўРµРїРµСЂСЊ СЌС‚Рѕ РіРѕС‚РѕРІС‹Р№ РѕР±СЉРµРєС‚, РєРѕС‚РѕСЂС‹Р№
+                // РјРѕР¶РЅРѕ РїРµСЂРµРґР°С‚СЊ РІ AudioSource.
+                AudioClip clip =
+                    DownloadHandlerAudioClip.GetContent(request);
+
+                if (clip == null)
+                {
+                    Debug.LogWarning(
+                        "MusicManager: РЅРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ AudioClip: " +
+                        trackPath
                     );
 
                     continue;
                 }
 
 
-                AudioClip clip =
-                    DownloadHandlerAudioClip.GetContent(request);
+                // ====================================
+                // Р’РћРЎРџР РћРР—Р’Р•Р”Р•РќРР•
+                // ====================================
 
-                if (clip == null)
-                {
-                    continue;
-                }
-
-
-                // Назначаем и запускаем композицию.
                 _AudioSource.clip = clip;
                 _AudioSource.volume = musicVolume;
 
                 _AudioSource.Play();
 
                 Debug.Log(
-                    "Сейчас играет: " +
+                    "РЎРµР№С‡Р°СЃ РёРіСЂР°РµС‚: " +
                     Path.GetFileName(trackPath)
                 );
 
 
-                // Ждём окончания композиции.
+                // Р–РґС‘Рј, РїРѕРєР° РєРѕРјРїРѕР·РёС†РёСЏ РёРіСЂР°РµС‚.
                 //
-                // AudioListener.pause учитываем,
-                // чтобы во время смерти игра
-                // не переключала треки.
+                // MusicSwitch РІС‹Р·С‹РІР°РµС‚ Stop(), РїРѕСЌС‚РѕРјСѓ
+                // С†РёРєР» Р·Р°РІРµСЂС€РёС‚СЃСЏ Рё РЅР°С‡РЅС‘С‚СЃСЏ РЅРѕРІС‹Р№ С‚СЂРµРє.
+                //
+                // AudioListener.pause РЅРµ РїРѕР·РІРѕР»СЏРµС‚
+                // РїРµСЂРµРєР»СЋС‡РёС‚СЊ РјСѓР·С‹РєСѓ РІРѕ РІСЂРµРјСЏ СЃРјРµСЂС‚Рё.
                 while (_AudioSource.isPlaying ||
                        AudioListener.pause)
                 {
@@ -294,15 +340,21 @@ public class MusicManager : MonoBehaviour
                 }
 
 
-                // Очищаем старую композицию.
+                // ====================================
+                // РћР§РРЎРўРљРђ
+                // ====================================
+
+                // РџРѕСЃР»Рµ Р·Р°РІРµСЂС€РµРЅРёСЏ РѕС‚РІСЏР·С‹РІР°РµРј РєР»РёРї
+                // Рё СѓРЅРёС‡С‚РѕР¶Р°РµРј Р·Р°РіСЂСѓР¶РµРЅРЅС‹Р№ AudioClip,
+                // С‡С‚РѕР±С‹ РЅРµ РЅР°РєР°РїР»РёРІР°С‚СЊ РјСѓР·С‹РєСѓ РІ РїР°РјСЏС‚Рё.
                 _AudioSource.Stop();
                 _AudioSource.clip = null;
 
                 Destroy(clip);
             }
 
-            // Цикл продолжается.
-            // Выбираем следующую композицию.
+            // Р’РѕР·РІСЂР°С‰Р°РµРјСЃСЏ Рє РЅР°С‡Р°Р»Сѓ while(true)
+            // Рё РІС‹Р±РёСЂР°РµРј СЃР»РµРґСѓСЋС‰СѓСЋ СЃР»СѓС‡Р°Р№РЅСѓСЋ РїРµСЃРЅСЋ.
         }
     }
 }
